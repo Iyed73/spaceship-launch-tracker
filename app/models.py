@@ -5,6 +5,9 @@ from app import db
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 from sqlalchemy.ext.declarative import declared_attr
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+from app import login
 
 
 class TimestampMixin:
@@ -17,18 +20,28 @@ class TimestampMixin:
         return Column(DateTime, onupdate=lambda: datetime.now(timezone.utc))
 
 
-class User(db.Model, TimestampMixin):
+class User(db.Model, TimestampMixin, UserMixin):
     __tablename__ = 'users'
 
     id: Mapped[UUID] = mapped_column(default=uuid4, primary_key=True)
     username: Mapped[str] = mapped_column(String(64), index=True, unique=True)
     email: Mapped[str] = mapped_column(String(128), index=True, unique=True)
     password_hash = mapped_column(String(256))
-    is_active: Mapped[bool] = mapped_column(default=True)
-    role: Mapped[str] = mapped_column(String(128), unique=True, default='user')
+    role: Mapped[str] = mapped_column(String(128), default='user')
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
         return f'{self.role}({self.id.hex}, "{self.username}", {self.email})'
+
+
+@login.user_loader
+def load_user(id):
+    return db.session.get(User, UUID(id))
 
 
 class RocketLaunch(db.Model, TimestampMixin):
