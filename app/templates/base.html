@@ -1,0 +1,93 @@
+{% from 'bootstrap4/nav.html' import render_nav_item %}
+<!doctype html>
+<html lang="en">
+    <head>
+     <script src="https://www.google.com/recaptcha/enterprise.js?render=6LcRD_gpAAAAAP-ONg1b1V-CwnvhTowxqz5jJemY"></script>
+        {% block head %}
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        {% block styles %}
+            <!-- Bootstrap CSS -->
+            {{ bootstrap.load_css() }}
+        <style>
+            .navbar-nav .nav-link.active {
+                text-decoration: underline;
+            }
+        </style>
+        {% endblock %}
+
+        <title>{% block title %}Your page title{% endblock %}</title>
+        {% endblock %}
+    </head>
+    <body>
+        {% block navbar %}
+        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #f4f7ff;">
+            <div class="container">
+                <a class="navbar-brand text-primary" href="#">Launch Vault</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav mx-auto">
+                        {{ render_nav_item('main.index', 'Home') }}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" style="margin-right: 20px;">Upcoming Launches</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" style="margin-right: 20px;">Past Launches</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" style="margin-right: 20px;">Rockets</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" style="margin-right: 20px;">Launch Sites</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        {% if current_user.is_authenticated %}
+                            {{ render_nav_item('authentication.logout', 'Logout') }}
+                        {% else %}
+                            {{ render_nav_item('authentication.login', 'Login') }}
+                            {{ render_nav_item('authentication.register', 'Register') }}
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        {% endblock %}
+
+        <!-- Your page content -->
+        {% block content %}
+        <div class="container mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show d-flex justify-content-between align-items-center" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block page_content %}{% endblock %}
+        </div>
+        {% endblock %}
+
+        {% block scripts %}
+            <!-- Optional JavaScript -->
+            {{ bootstrap.load_js() }}
+                <script>
+  function onClick(e) {
+    e.preventDefault();
+    grecaptcha.enterprise.ready(async () => {
+      const token = await grecaptcha.enterprise.execute('6LcRD_gpAAAAAP-ONg1b1V-CwnvhTowxqz5jJemY', {action: 'LOGIN'});
+    });
+  }
+</script>
+        {% endblock %}
+    </body>
+</html>
