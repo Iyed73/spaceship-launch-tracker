@@ -12,14 +12,3 @@
     </div>
 </div>
 {% endblock %}
-{% block scripts %}
-{{ super() }}
-<script>
-  function onClick(e) {
-    e.preventDefault();
-    grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute('6LcRD_gpAAAAAP-ONg1b1V-CwnvhTowxqz5jJemY', {action: 'LOGIN'});
-    });
-  }
-</script>
-{% endblock %}
