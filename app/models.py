@@ -20,6 +20,16 @@ class TimestampMixin:
         return Column(DateTime, onupdate=lambda: datetime.now(timezone.utc))
 
 
+class CreatedByMixin:
+    @declared_attr
+    def creator_id(cls):
+        return Column(ForeignKey('users.id'))
+
+    @declared_attr
+    def creator(cls):
+        return relationship('User')
+
+
 class User(db.Model, TimestampMixin, UserMixin):
     __tablename__ = 'users'
 
@@ -27,7 +37,7 @@ class User(db.Model, TimestampMixin, UserMixin):
     username: Mapped[str] = mapped_column(String(64), index=True, unique=True)
     email: Mapped[str] = mapped_column(String(128), index=True, unique=True)
     password_hash = mapped_column(String(256))
-    role: Mapped[str] = mapped_column(String(128), default='user')
+    role: Mapped[str] = mapped_column(String(128), default='spectator')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -44,30 +54,30 @@ def load_user(id):
     return db.session.get(User, UUID(id))
 
 
-class RocketLaunch(db.Model, TimestampMixin):
-    __tablename__ = 'rocket_launches'
+class Launch(db.Model, TimestampMixin, CreatedByMixin):
+    __tablename__ = 'launches'
 
     id: Mapped[UUID] = mapped_column(default=uuid4, primary_key=True)
     mission: Mapped[String] = mapped_column(String(128), index=True)
     description: Mapped[Optional[str]] = mapped_column(String(1024))
     launch_timestamp: Mapped[datetime]
-    rocket_id: Mapped[int] = mapped_column(ForeignKey('rockets.id'), index=True)
+    spaceship_id: Mapped[int] = mapped_column(ForeignKey('spaceships.id'), index=True)
     launch_site_id: Mapped[int] = mapped_column(ForeignKey('launch_sites.id'), index=True)
 
-    rocket: Mapped['Rocket'] = relationship(
-        lazy='joined', back_populates='rocket_launches'
+    spaceship: Mapped['Spaceship'] = relationship(
+        lazy='joined', back_populates='launches'
     )
 
     launch_site: Mapped['LaunchSite'] = relationship(
-        lazy='joined', back_populates='rocket_launches'
+        lazy='joined', back_populates='launches'
     )
 
     def __repr__(self):
-        return f"Rocket({self.id.hex},{self.mission})"
+        return f"Launch({self.id.hex},{self.mission})"
 
 
-class Rocket(db.Model, TimestampMixin):
-    __tablename__ = 'rockets'
+class Spaceship(db.Model, TimestampMixin, CreatedByMixin):
+    __tablename__ = 'spaceships'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), index=True, unique=True)
@@ -77,21 +87,21 @@ class Rocket(db.Model, TimestampMixin):
     payload_capacity: Mapped[float]
     thrust_at_liftoff: Mapped[float]
 
-    rocket_launches: Mapped[list['RocketLaunch']] = relationship(
-        cascade='all, delete-orphan', back_populates='rocket')
+    launches: Mapped[list['Launch']] = relationship(
+        cascade='all, delete-orphan', back_populates='spaceship')
 
     def __repr__(self):
-        return f"Rocket({self.id},{self.name})"
+        return f"Spaceship({self.id},{self.name})"
 
 
-class LaunchSite(db.Model, TimestampMixin):
+class LaunchSite(db.Model, TimestampMixin, CreatedByMixin):
     __tablename__ = 'launch_sites'
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), index=True, unique=True)
     location: Mapped[str] = mapped_column(String(256))
 
-    rocket_launches: Mapped[list['RocketLaunch']] = relationship(
+    launches: Mapped[list['Launch']] = relationship(
         cascade='all, delete-orphan', back_populates='launch_site')
 
     def __repr__(self):
