@@ -7,6 +7,8 @@ load_dotenv()
 
 class Config:
     SECRET_KEY = os.environ['SECRET_KEY']
+    SECURITY_PASSWORD_SALT = os.environ['SECURITY_PASSWORD_SALT']
+    APP_EMAIL = os.environ['APP_EMAIL']
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URL']
     SQLALCHEMY_TRACK_MODIFICATIONS = False

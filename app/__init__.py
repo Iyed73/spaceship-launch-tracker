@@ -21,6 +21,8 @@ limiter = Limiter(
     default_limits=["300 per day", "50 per hour"],
 )
 mail = Mail()
+login.login_view = "authentication.login"
+login.login_message_category = "danger"
 
 
 def create_app(test_config=None):
