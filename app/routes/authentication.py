@@ -8,7 +8,7 @@ from app.views.confirm import ConfirmView
 bp.add_url_rule("/register",
                 view_func=RegisterView.as_view("register"))
 
-bp.add_url_rule("/log",
+bp.add_url_rule("/login",
                 view_func=LoginView.as_view("login"))
 
 bp.add_url_rule("/logout",
