@@ -1,6 +1,6 @@
 import os
 from flask import Flask, render_template
-from config import Config
+from config import DevelopmentConfig
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -25,10 +25,10 @@ login.login_view = "authentication.login"
 login.login_message_category = "danger"
 
 
-def create_app(test_config=None):
+def create_app(config):
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config.from_object(Config)
+    app.config.from_object(config)
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -46,4 +46,4 @@ def create_app(test_config=None):
     return app
 
 
-app = create_app()
+app = create_app(DevelopmentConfig)
