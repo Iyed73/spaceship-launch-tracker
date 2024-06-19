@@ -25,11 +25,13 @@ class RegistrationForm(FlaskForm):
 
     # todo: validate_username & validate_email are only called if the other validators have passed
     def validate_username(self, username):
-        user = db.session.scalar(select(User).where(User.username == username.data))
-        if user is not None:
-            raise ValidationError('Choose a different username.')
+        if self.username.data and self.username.validate(self):
+            user = db.session.scalar(select(User).where(User.username == username.data))
+            if user is not None:
+                raise ValidationError('Choose a different username.')
 
     def validate_email(self, email):
-        user = db.session.scalar(select(User).where(User.email == email.data))
-        if user is not None:
-            raise ValidationError('Email is already used.')
+        if self.email.data and self.email.validate(self):
+            user = db.session.scalar(select(User).where(User.email == email.data))
+            if user is not None:
+                raise ValidationError('Email is already used.')
