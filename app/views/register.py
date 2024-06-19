@@ -1,9 +1,12 @@
 from flask.views import MethodView
-from flask import render_template, flash, url_for, redirect, request
+from flask import render_template, flash, url_for, redirect, current_app
 from flask_login import current_user
 from app.models import User
 from app.forms import RegistrationForm
 from app import db, limiter
+from itsdangerous import URLSafeTimedSerializer as Serializer
+from flask_mail import Message
+from app import mail
 
 
 class RegisterView(MethodView):
@@ -23,7 +26,16 @@ class RegisterView(MethodView):
             user.set_password(self.form.password.data)
             db.session.add(user)
             db.session.commit()
-            flash('Congratulations, you are now a registered user!')
+            token = user.generate_confirmation_token()
+            confirm_url = url_for("authentication.confirm", token=token, _external=True)
+            message = Message(recipients=[user.email], sender=current_app.config['APP_EMAIL'])
+            html = render_template("confirm.html", confirm_url=confirm_url)
+            subject = "Confirm Your Account"
+            message.html = html
+            message.subject = subject
+            mail.send(message)
+            flash('Congratulations, you are now a registered user!', 'success')
+            flash('A confirmation email has been sent to you by email.', 'success')
             return redirect(url_for('authentication.login'))
         return render_template('register.html', title='Register', form=self.form)
 
