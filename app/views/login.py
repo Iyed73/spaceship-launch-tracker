@@ -23,8 +23,11 @@ class LoginView(MethodView):
             user = db.session.scalar(
                 select(User).where(User.username == self.form.username.data)
             )
-            if user is None or not user.check_password(self.form.password.data):
-                flash('Invalid username or password','danger')
+            if user is None:
+                flash('Invalid username','danger')
+                return redirect(url_for('authentication.login'))
+            if not user.check_password(self.form.password.data):
+                flash('Invalid password','danger')
                 return redirect(url_for('authentication.login'))
             login_user(user, remember=self.form.remember_me.data)
             next_page = request.args.get('next')
