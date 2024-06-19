@@ -5,10 +5,29 @@
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
         <h2 class="text-center">Register</h2>
-        <form method="post" novalidate>
+        <form method="POST" id="myForm" novalidate>
             {{ form.csrf_token }}
             {{ render_form(form) }}
         </form>
     </div>
 </div>
 {% endblock %}
+
+{#{% block scripts %}#}
+{#{{ super() }}#}
+{#<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>#}
+{#<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>#}
+{#<script>#}
+{#  $(document).ready(function() {#}
+{#    $("#myForm").validate({#}
+{#      errorPlacement: function(error, element) {#}
+{#        error.appendTo(element.parent());#}
+{#        error.addClass("text-danger");#}
+{#      }#}
+{#    });#}
+{#  });#}
+{#</script>#}
+{#<style>#}
+{#  .text-danger { color: red; }#}
+{#</style>#}
+{#{% endblock %}#}
