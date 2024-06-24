@@ -16,7 +16,7 @@ class RegisterView(MethodView):
     def send_confirmation_email(user):
         token = user.generate_confirmation_token()
         confirm_url = url_for("authentication.confirm", token=token, _external=True)
-        message = Message(recipients=[user.email], sender=current_app.config['APP_EMAIL'])
+        message = Message(recipients=[user.email], sender=current_app.config["APP_EMAIL"])
         html = render_template("confirm.html", confirm_url=confirm_url)
         subject = "Confirm Your Account"
         message.html = html
@@ -25,8 +25,8 @@ class RegisterView(MethodView):
 
     def get(self):
         if current_user.is_authenticated:
-            return redirect(url_for('main.index'))
-        return render_template('register.html', title='Register', form=self.form)
+            return redirect(url_for("main.index"))
+        return render_template("register.html", title="Register", form=self.form)
 
     @limiter.limit("10 per minute")
     def post(self):
@@ -37,8 +37,8 @@ class RegisterView(MethodView):
             db.session.add(user)
             db.session.commit()
             self.send_confirmation_email(user)
-            flash('Congratulations, you are now a registered user!', 'success')
-            flash('A confirmation email has been sent to you by email.', 'success')
+            flash("Congratulations, you are now a registered user!", "success")
+            flash("A confirmation email has been sent to you by email.", "success")
             return redirect(url_for('authentication.login'))
-        return render_template('register.html', title='Register', form=self.form)
+        return render_template("register.html", title="Register", form=self.form)
 

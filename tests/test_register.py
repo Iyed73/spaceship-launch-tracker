@@ -19,20 +19,20 @@ def test_register_fails_invalid_form(client, app):
                            data={"email": "invalid",
                                  "password": "short",
                                  "password_confirmation": "s"})
-    assert b'Invalid email address.' in response.data
-    assert b'This field is required.' in response.data
-    assert b'Field must be equal to password.' in response.data
+    assert b"Invalid email address." in response.data
+    assert b"This field is required." in response.data
+    assert b"Field must be equal to password." in response.data
 
 
 def test_register_fails_duplicate_user(client, app, mocker):
     user = User(username="testuser", email="test@test.com")
-    user.set_password('password')
+    user.set_password("password")
     with app.app_context():
         db.session.add(user)
         db.session.commit()
 
-    mocker.patch('app.views.register.db.session.add')
-    mocker.patch('app.views.register.db.session.commit')
+    mocker.patch("app.views.register.db.session.add")
+    mocker.patch("app.views.register.db.session.commit")
 
     response = client.post("/authentication/register",
                            data={"email": "test@test.com",

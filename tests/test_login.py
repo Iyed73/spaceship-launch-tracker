@@ -11,8 +11,8 @@ def test_login_success(client, app):
         db.session.commit()
 
     response = client.post("/authentication/login", data={
-        'username': 'testuser',
-        'password': 'password',
+        "username": "testuser",
+        "password": "password",
     })
     assert response.status_code == 302
 
@@ -29,7 +29,7 @@ def test_login_fails(client, app, username, password, message):
 
     response = client.post("/authentication/login",
                            data={
-                            'username': username,
-                            'password': password,
+                            "username": username,
+                            "password": password,
                            }, follow_redirects=True)
     assert message in response.data

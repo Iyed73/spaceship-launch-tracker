@@ -1,4 +1,4 @@
-{% from 'bootstrap4/nav.html' import render_nav_item %}
+{% from "bootstrap5/nav.html" import render_nav_item %}
 <!doctype html>
 <html lang="en">
     <head>
@@ -10,6 +10,7 @@
         {% block styles %}
             <!-- Bootstrap CSS -->
             {{ bootstrap.load_css() }}
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
         <style>
             .navbar-nav .nav-link.active {
                 text-decoration: underline;
@@ -31,26 +32,28 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav mx-auto">
+                        <li class="nav-item me-3">
                         {{ render_nav_item('main.index', 'Home') }}
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Upcoming Launches</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Past Launches</a>
+                        <li class="nav-item me-3">
+                            <a class="nav-link" href="#">Upcoming Launches</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Rockets</a>
+                        <li class="nav-item me-3">
+                            <a class="nav-link" href="#">Past Launches</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Launch Sites</a>
+                        <li class="nav-item me-3">
+                            <a class="nav-link" href="#">Spaceships</a>
+                        </li>
+                        <li class="nav-item me-3">
+                            <a class="nav-link" href="#">Launch Sites</a>
                         </li>
                     </ul>
                     <ul class="navbar-nav">
                         {% if current_user.is_authenticated %}
-                            {{ render_nav_item('authentication.logout', 'Logout') }}
+                            {{ render_nav_item("authentication.logout", "Logout") }}
                         {% else %}
-                            {{ render_nav_item('authentication.login', 'Login') }}
-                            {{ render_nav_item('authentication.register', 'Register') }}
+                            {{ render_nav_item("authentication.login", "Login") }}
+                            {{ render_nav_item("authentication.register", "Register") }}
                         {% endif %}
                     </ul>
                 </div>

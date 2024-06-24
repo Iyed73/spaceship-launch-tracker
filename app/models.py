@@ -25,21 +25,21 @@ class TimestampMixin:
 class CreatedByMixin:
     @declared_attr
     def creator_id(cls):
-        return Column(ForeignKey('users.id'))
+        return Column(ForeignKey("users.id"))
 
     @declared_attr
     def creator(cls):
-        return relationship('User')
+        return relationship("User")
 
 
 class User(db.Model, TimestampMixin, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(default=uuid4, primary_key=True)
     username: Mapped[str] = mapped_column(String(64), index=True, unique=True)
     email: Mapped[str] = mapped_column(String(128), index=True, unique=True)
     password_hash = mapped_column(String(256))
-    role: Mapped[str] = mapped_column(String(128), default='spectator')
+    role: Mapped[str] = mapped_column(String(128), default="spectator")
     is_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def set_password(self, password):
@@ -49,11 +49,11 @@ class User(db.Model, TimestampMixin, UserMixin):
         return check_password_hash(self.password_hash, password)
 
     def generate_confirmation_token(self):
-        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
         return serializer.dumps(str(self.id), salt=current_app.config["SECURITY_PASSWORD_SALT"])
 
     def confirm_token(self, token, expiration=3600):
-        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
         try:
             data = serializer.loads(
                 token, salt=current_app.config["SECURITY_PASSWORD_SALT"], max_age=expiration
@@ -77,21 +77,21 @@ def load_user(id):
 
 
 class Launch(db.Model, TimestampMixin, CreatedByMixin):
-    __tablename__ = 'launches'
+    __tablename__ = "launches"
 
     id: Mapped[UUID] = mapped_column(default=uuid4, primary_key=True)
     mission: Mapped[String] = mapped_column(String(128), index=True)
     description: Mapped[Optional[str]] = mapped_column(String(1024))
     launch_timestamp: Mapped[datetime]
-    spaceship_id: Mapped[int] = mapped_column(ForeignKey('spaceships.id'), index=True)
-    launch_site_id: Mapped[int] = mapped_column(ForeignKey('launch_sites.id'), index=True)
+    spaceship_id: Mapped[int] = mapped_column(ForeignKey("spaceships.id"), index=True)
+    launch_site_id: Mapped[int] = mapped_column(ForeignKey("launch_sites.id"), index=True)
 
-    spaceship: Mapped['Spaceship'] = relationship(
-        lazy='joined', back_populates='launches'
+    spaceship: Mapped["Spaceship"] = relationship(
+        lazy="joined", back_populates="launches"
     )
 
-    launch_site: Mapped['LaunchSite'] = relationship(
-        lazy='joined', back_populates='launches'
+    launch_site: Mapped["LaunchSite"] = relationship(
+        lazy="joined", back_populates="launches"
     )
 
     def __repr__(self):
@@ -99,7 +99,7 @@ class Launch(db.Model, TimestampMixin, CreatedByMixin):
 
 
 class Spaceship(db.Model, TimestampMixin, CreatedByMixin):
-    __tablename__ = 'spaceships'
+    __tablename__ = "spaceships"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), index=True, unique=True)
@@ -109,22 +109,22 @@ class Spaceship(db.Model, TimestampMixin, CreatedByMixin):
     payload_capacity: Mapped[float]
     thrust_at_liftoff: Mapped[float]
 
-    launches: Mapped[list['Launch']] = relationship(
-        cascade='all, delete-orphan', back_populates='spaceship')
+    launches: Mapped[list["Launch"]] = relationship(
+        cascade="all, delete-orphan", back_populates="spaceship")
 
     def __repr__(self):
         return f"Spaceship({self.id},{self.name})"
 
 
 class LaunchSite(db.Model, TimestampMixin, CreatedByMixin):
-    __tablename__ = 'launch_sites'
+    __tablename__ = "launch_sites"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(64), index=True, unique=True)
     location: Mapped[str] = mapped_column(String(256))
 
-    launches: Mapped[list['Launch']] = relationship(
-        cascade='all, delete-orphan', back_populates='launch_site')
+    launches: Mapped[list["Launch"]] = relationship(
+        cascade="all, delete-orphan", back_populates="launch_site")
 
     def __repr__(self):
         return f"LaunchSite({self.id},{self.name})"
