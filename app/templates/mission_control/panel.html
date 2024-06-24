@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Mission Control{% endblock %}
+{% block page_content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="list-group">
+            <a href="{{ url_for('mission_control.list_launches') }}" class="list-group-item list-group-item-action list-group-item-primary mb-3">
+                Launches
+                <span class="badge bg-danger rounded-pill position-absolute end-0 me-2">{{ launch_count }}</span>
+            </a>
+            <a href="{{ url_for('mission_control.list_spaceships') }}"class="list-group-item list-group-item-action list-group-item-primary mb-3">
+                Spaceships
+                <span class="badge bg-danger rounded-pill position-absolute end-0 me-2">{{ spaceship_count }}</span>
+            </a>
+            <a href="{{ url_for('mission_control.list_launchsites') }}" class="list-group-item list-group-item-action list-group-item-primary mb-3">
+                Launch Sites
+                <span class="badge bg-danger rounded-pill position-absolute end-0 me-2">{{ launchsite_count }}</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
