@@ -1,5 +1,5 @@
 from app.blueprints import main_bp as bp
-from app.views.index import HomeView
+from app.views.main.index import HomeView
 from flask import redirect, url_for
 
 
