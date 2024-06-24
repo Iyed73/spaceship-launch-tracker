@@ -42,17 +42,17 @@ class User(db.Model, TimestampMixin, UserMixin):
     role: Mapped[str] = mapped_column(String(128), default="spectator")
     is_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    def set_password(self, password):
+    def set_password(self, password: str):
         self.password_hash = generate_password_hash(password)
 
-    def check_password(self, password):
+    def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
-    def generate_confirmation_token(self):
+    def generate_confirmation_token(self) -> str:
         serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
         return serializer.dumps(str(self.id), salt=current_app.config["SECURITY_PASSWORD_SALT"])
 
-    def confirm_token(self, token, expiration=3600):
+    def confirm_token(self, token: str, expiration: int = 3600) -> bool:
         serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
         try:
             data = serializer.loads(
