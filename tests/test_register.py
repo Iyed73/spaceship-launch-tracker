@@ -22,6 +22,8 @@ def test_register_fails_invalid_form(client, app):
     assert b"Invalid email address." in response.data
     assert b"This field is required." in response.data
     assert b"Field must be equal to password." in response.data
+    with app.app_context():
+        assert User.query.count() == 0
 
 
 def test_register_fails_duplicate_user(client, app, mocker):
