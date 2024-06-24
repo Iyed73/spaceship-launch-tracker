@@ -6,5 +6,5 @@ from flask import url_for, redirect
 class LogoutView(View):
     def dispatch_request(self):
         logout_user()
-        return redirect(url_for('main.index'))
+        return redirect(url_for("main.index"))
 

@@ -31,8 +31,8 @@ def test_register_fails_duplicate_user(client, app, mocker):
         db.session.add(user)
         db.session.commit()
 
-    mocker.patch('app.views.register.db.session.add')
-    mocker.patch('app.views.register.db.session.commit')
+    mocker.patch('app.views.authentication.register.db.session.add')
+    mocker.patch('app.views.authentication.register.db.session.commit')
 
     response = client.post("/authentication/register",
                            data={"email": "test@test.com",

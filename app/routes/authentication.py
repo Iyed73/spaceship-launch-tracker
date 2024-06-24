@@ -1,8 +1,8 @@
 from app.blueprints import authentication_bp as bp
-from app.views.register import RegisterView
-from app.views.login import LoginView
-from app.views.logout import LogoutView
-from app.views.confirm import ConfirmView
+from app.views.authentication.register import RegisterView
+from app.views.authentication.login import LoginView
+from app.views.authentication.logout import LogoutView
+from app.views.authentication.confirm import ConfirmView
 
 
 bp.add_url_rule("/register",
