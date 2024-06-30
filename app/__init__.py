@@ -35,11 +35,12 @@ def create_app(config):
     limiter.init_app(app)
     mail.init_app(app)
 
-    from app.routes import authentication, main, mission_control
+    from app.routes import authentication, main, mission_control, launches
 
     app.register_blueprint(authentication.bp, url_prefix="/authentication")
     app.register_blueprint(main.bp)
     app.register_blueprint(mission_control.bp)
+    app.register_blueprint(launches.bp)
 
     return app
 
