@@ -28,7 +28,7 @@ class BaseListView(View):
         return url_for(self.update_reverse_url, id=object_id)
 
     def get_delete_url(self, object_id):
-        url_for(self.delete_reverse_url, id=object_id)
+        return url_for(self.delete_reverse_url, id=object_id)
 
     def dispatch_request(self):
         return render_template("mission_control/list_objects.html",

@@ -13,4 +13,4 @@ class DeleteLaunchView(MethodView):
         db.session.delete(obj)
         db.session.commit()
         flash("Launch deleted successfully!", "success")
-        return redirect(url_for("mission_control.list_launch"))
+        return redirect(url_for("mission_control.list_launches"))
