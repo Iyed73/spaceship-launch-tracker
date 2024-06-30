@@ -23,7 +23,7 @@
     </head>
     <body>
         {% block navbar %}
-        <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e6efff;">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom sticky-top">
             <div class="container">
                 <a class="navbar-brand text-primary">Launch Vault</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -33,18 +33,8 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav mx-auto">
                         {{ render_nav_item("main.index", "Home") }}
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Upcoming Launches</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Past Launches</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Rockets</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" style="margin-right: 20px;">Launch Sites</a>
-                        </li>
+                        {{ render_nav_item("launches.upcoming_launches", "Upcoming Launches") }}
+                        {{ render_nav_item("launches.past_launches", "Past Launches") }}
                         {% if current_user.is_authenticated and current_user.role == 'admin' %}
                         {{ render_nav_item("mission_control.panel", "Mission Control") }}
                         {% endif %}
