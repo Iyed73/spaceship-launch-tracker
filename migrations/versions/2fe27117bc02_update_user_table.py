@@ -22,7 +22,7 @@ def upgrade():
         batch_op.drop_column('is_active')
 
     # ### end Alembic commands ###
-    op.drop_constraint("role", "users")
+    op.drop_constraint("role", "users", type_="unique")
 
 
 def downgrade():

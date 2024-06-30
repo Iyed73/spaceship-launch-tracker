@@ -6,9 +6,12 @@ from app.forms import RegistrationForm
 from app import db, limiter
 from flask_mail import Message
 from app import mail
+from app.decorators import logged_out_required
 
 
 class RegisterView(MethodView):
+    decorators = [logged_out_required]
+
     def __init__(self):
         self.form = RegistrationForm()
 
@@ -17,7 +20,7 @@ class RegisterView(MethodView):
         token = user.generate_confirmation_token()
         confirm_url = url_for("authentication.confirm", token=token, _external=True)
         message = Message(recipients=[user.email], sender=current_app.config["APP_EMAIL"])
-        html = render_template("confirm.html", confirm_url=confirm_url)
+        html = render_template("authentication/confirm.html", confirm_url=confirm_url)
         subject = "Confirm Your Account"
         message.html = html
         message.subject = subject
@@ -26,7 +29,7 @@ class RegisterView(MethodView):
     def get(self):
         if current_user.is_authenticated:
             return redirect(url_for("main.index"))
-        return render_template("register.html", title="Register", form=self.form)
+        return render_template("authentication/register.html", title="Register", form=self.form)
 
     @limiter.limit("10 per minute")
     def post(self):
@@ -39,6 +42,6 @@ class RegisterView(MethodView):
             self.send_confirmation_email(user)
             flash("Congratulations, you are now a registered user!", "success")
             flash("A confirmation email has been sent to you by email.", "success")
-            return redirect(url_for('authentication.login'))
-        return render_template("register.html", title="Register", form=self.form)
+            return redirect(url_for("authentication.login"))
+        return render_template("authentication/register.html", title="Register", form=self.form)
 
