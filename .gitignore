@@ -2,3 +2,4 @@
 .venv
 .idea
 .coverage
+*__pycache__/
