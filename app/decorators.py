@@ -1,5 +1,5 @@
 from functools import wraps
-from flask_login import current_user, fresh_login_required
+from flask_login import current_user, login_required
 from flask import flash, url_for, redirect
 
 
@@ -14,7 +14,7 @@ def logged_out_required(func):
 
 def admin_required(func):
     @wraps(func)
-    @fresh_login_required
+    @login_required
     def decorated_function(*args, **kwargs):
         if current_user.role != "admin":
             flash("You don't have permission to access this page.", "warning")
