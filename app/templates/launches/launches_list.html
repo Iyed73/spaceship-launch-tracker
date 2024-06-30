@@ -29,7 +29,7 @@
                     <div class="mb-3">
                             <p class="card-text mb-0">
                                 <strong class="text">Launch Time:</strong>
-                                <span class="d-block fs-4 fw-bold text-danger">{{ launch.launch_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                                <span class="d-block fs-4 fw-bold text-danger">{{ moment(launch.launch_timestamp).format("LLL") }}</span>
                             </p>
                         </div>
                         <div>
