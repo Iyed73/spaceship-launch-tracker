@@ -42,3 +42,24 @@ def login_admin(client, admin):
             "password": "password",
         })
         return client
+    
+    
+@pytest.fixture()
+def user(app):
+    user = User(username="user", email="user@user.com")
+    user.set_password("password")
+    with app.app_context():
+        db.session.add(user)
+        db.session.commit()
+        db.session.refresh(user)
+    return user
+
+
+@pytest.fixture()
+def login_user(client, user):
+    with client:
+        client.post("/authentication/login", data={
+            "username": "user",
+            "password": "password",
+        })
+        return client
