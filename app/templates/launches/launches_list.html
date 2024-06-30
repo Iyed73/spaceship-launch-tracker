@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+{% block title %}{{ status }} Launches{% endblock %}
+
+{% block page_content %}
+<div class="container my-5">
+    <h1 class="text-center mb-5">{{ status }} Launches</h1>
+         <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            {{ render_form(form, form_type="inline", method="get") }}
+        </div>
+    </div>
+    {% if launches %}
+    <div class="row justify-content-center">
+        {% for launch in launches %}
+        <div class="col-md-8 mb-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ launch.mission }}</h5>
+                        {% if status == "Upcoming" %}
+                        <button class="btn btn-secondary btn-sm">Set Reminder</button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ launch.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-auto">
+                    <div class="mb-3">
+                            <p class="card-text mb-0">
+                                <strong class="text">Launch Time:</strong>
+                                <span class="d-block fs-4 fw-bold text-danger">{{ launch.launch_timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="card-text mb-0"><strong>Spaceship:</strong> {{ launch.spaceship.name }}</p>
+                            <p class="card-text mb-0"><strong>Launch Site:</strong> {{ launch.launch_site.name }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('launches.upcoming_launches', page=pagination.prev_num, spaceship=form.spaceship.data, launch_site=form.launch_site.data) }}" class="btn btn-primary">Previous</a>
+            {% endif %}
+            {% if pagination.has_next %}
+            <a href="{{ url_for('launches.upcoming_launches', page=pagination.next_num, spaceship=form.spaceship.data, launch_site=form.launch_site.data) }}" class="btn btn-primary">Next</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% else %}
+    <p class="text-center">No upcoming launches found.</p>
+    {% endif %}
+</div>
+{% endblock %}

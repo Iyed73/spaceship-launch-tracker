@@ -65,3 +65,10 @@ class LaunchForm(FlaskForm):
     launch_site_id = SelectField("Launch Site", coerce=int, choices=[])
     submit = SubmitField("Submit")
 
+
+class LaunchFilterForm(FlaskForm):
+    class Meta:
+        csrf = False
+    spaceship = SelectField("Spaceship", coerce=int, choices=[])
+    launch_site = SelectField("Launch Site", coerce=int, choices=[])
+    submit = SubmitField("Filter")
