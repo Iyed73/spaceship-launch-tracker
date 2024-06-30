@@ -45,7 +45,9 @@
                         <li class="nav-item">
                             <a class="nav-link" href="#" style="margin-right: 20px;">Launch Sites</a>
                         </li>
+                        {% if current_user.is_authenticated and current_user.role == 'admin' %}
                         {{ render_nav_item("mission_control.panel", "Mission Control") }}
+                        {% endif %}
                     </ul>
                     <ul class="navbar-nav">
                         {% if current_user.is_authenticated %}
