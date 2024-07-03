@@ -7,6 +7,7 @@ from flask_bootstrap import Bootstrap5
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail
+from flask_moment import Moment
 
 
 db = SQLAlchemy()
@@ -18,6 +19,7 @@ limiter = Limiter(
     default_limits=["500 per day", "100 per hour"],
 )
 mail = Mail()
+moment = Moment()
 
 
 def create_app(config):
@@ -34,12 +36,14 @@ def create_app(config):
     bootstrap.init_app(app)
     limiter.init_app(app)
     mail.init_app(app)
+    moment.init_app(app)
 
-    from app.routes import authentication, main, mission_control
+    from app.routes import authentication, main, mission_control, launches
 
     app.register_blueprint(authentication.bp, url_prefix="/authentication")
     app.register_blueprint(main.bp)
     app.register_blueprint(mission_control.bp)
+    app.register_blueprint(launches.bp)
 
     return app
 
