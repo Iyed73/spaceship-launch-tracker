@@ -9,9 +9,10 @@ class PastLaunchesView(MethodView):
     def get(self):
         now = datetime.now()
         page = request.args.get("page", 1, type=int)
-        per_page = 10
 
         form = LaunchFilterForm(request.args)
+
+        per_page = form.per_page.data or 10
 
         form.spaceship.choices = ([(0, "All Spaceships")] +
                                   [(spaceship.id, spaceship.name) for spaceship in Spaceship.query.all()])

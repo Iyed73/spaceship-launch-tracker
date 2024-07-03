@@ -71,4 +71,5 @@ class LaunchFilterForm(FlaskForm):
         csrf = False
     spaceship = SelectField("Spaceship", coerce=int, choices=[])
     launch_site = SelectField("Launch Site", coerce=int, choices=[])
+    per_page = SelectField("Launches per Page", coerce=int, choices=[(10, '10'), (20, '20'), (30, '30')], default=10)
     submit = SubmitField("Filter")
