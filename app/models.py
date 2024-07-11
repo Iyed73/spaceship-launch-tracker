@@ -1,6 +1,6 @@
 from typing import Optional
-from sqlalchemy import func,  String, Integer, ForeignKey, Table, Column, DateTime, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, Session, relationship, WriteOnlyMapped
+from sqlalchemy import  String, ForeignKey, Column, DateTime, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app import db
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
@@ -128,3 +128,15 @@ class LaunchSite(db.Model, TimestampMixin, CreatedByMixin):
 
     def __repr__(self):
         return f"{self.id}: {self.name}"
+
+
+class Subscriber(db.Model, TimestampMixin):
+    __tablename__ = "subscribers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(128), index=True, unique=True)
+    is_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    def generate_confirmation_token(self):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        return serializer.dumps(self.email, salt=current_app.config["SECURITY_PASSWORD_SALT"])
