@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <h2 class="text-center">Subscribe</h2>
+        {{ render_form(form, novalidate=True, id="myForm") }}
+        <div class="mt-4 p-3 border rounded bg-light">
+            <h5>By subscribing, you will get:</h5>
+            <ul class="list-group">
+                <li class="list-group-item">Email notification for every new launch or updated launch</li>
+                <li class="list-group-item">A reminder 2 hours before every launch</li>
+                <li class="list-group-item">New milestones and updates from our website</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

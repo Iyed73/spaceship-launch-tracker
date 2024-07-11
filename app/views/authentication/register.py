@@ -27,8 +27,6 @@ class RegisterView(MethodView):
         mail.send(message)
 
     def get(self):
-        if current_user.is_authenticated:
-            return redirect(url_for("main.index"))
         return render_template("authentication/register.html", title="Register", form=self.form)
 
     @limiter.limit("10 per minute")
