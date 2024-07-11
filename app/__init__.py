@@ -34,16 +34,19 @@ def create_app(config):
     migrate.init_app(app, db)
     login.init_app(app)
     bootstrap.init_app(app)
+
+    app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "Litera"
+
     limiter.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
 
-    from app.routes import authentication, main, mission_control, launches
-
+    from app.routes import authentication, main, mission_control, launches, subscription
     app.register_blueprint(authentication.bp, url_prefix="/authentication")
     app.register_blueprint(main.bp)
     app.register_blueprint(mission_control.bp)
     app.register_blueprint(launches.bp)
+    app.register_blueprint(subscription.bp, url_prefix="/subscription")
 
     return app
 

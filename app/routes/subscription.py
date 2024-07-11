@@ -1,4 +1,4 @@
-from app.blueprints import subscribers_bp as bp
+from app.blueprints import subscription_bp as bp
 from app.views.subscription.subscribe import SubscribeView
 from app.views.subscription.confirm import ConfirmView
 
