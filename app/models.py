@@ -135,6 +135,7 @@ class Subscriber(db.Model, TimestampMixin):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     email: Mapped[str] = mapped_column(String(128), index=True, unique=True)
+    name: Mapped[str] = mapped_column(String(128))
     is_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
 
     def generate_confirmation_token(self):

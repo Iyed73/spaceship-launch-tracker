@@ -77,6 +77,8 @@ class LaunchFilterForm(FlaskForm):
 
 class SubscriptionForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
+    name = StringField("Full name", validators=[Length(min=4, max=64), DataRequired(),
+                                                Regexp(r'^[a-zA-Z]+$', message="Full name must contain only letters.")])
     submit = SubmitField("Subscribe")
 
     def validate_email(self, email):

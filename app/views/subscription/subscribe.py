@@ -33,11 +33,12 @@ class SubscribeView(MethodView):
             subscriber = db.session.scalar(select(Subscriber).where(Subscriber.email == self.form.email.data))
             if subscriber is not None:
                 self.send_confirmation_email(subscriber)
+                flash("You have already subscribed before, please confirm your email.", "warning")
             else:
-                subscriber = Subscriber(email=self.form.email.data)
+                subscriber = Subscriber(email=self.form.email.data, name=self.form.name.data)
                 db.session.add(subscriber)
                 db.session.commit()
                 self.send_confirmation_email(subscriber)
-            flash("Please confirm your email to become a subscriber.", "success")
+                flash("Please confirm your email to become a subscriber.", "success")
             return redirect(url_for("main.index"))
         return render_template("subscription/subscribe.html", title="subscribe", form=self.form)
