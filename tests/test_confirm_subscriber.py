@@ -8,7 +8,7 @@ def test_confirm_email(client, app):
     serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
     token = serializer.dumps("test@test.com", salt=app.config["SECURITY_PASSWORD_SALT"])
 
-    subscriber = Subscriber(email="test@test.com")
+    subscriber = Subscriber(email="test@test.com", name="test")
     with app.app_context():
         db.session.add(subscriber)
         db.session.commit()
