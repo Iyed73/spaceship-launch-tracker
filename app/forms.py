@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextA
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length, Regexp, Optional
 from sqlalchemy import select
 from app import db
-from app.models import User, Subscriber
+from app.models import User
 
 
 class LoginForm(FlaskForm):
