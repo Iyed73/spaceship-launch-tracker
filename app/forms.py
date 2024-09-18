@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextA
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length, Regexp, Optional
 from sqlalchemy import select
 from app import db
-from app.models import User
+from app.models import User, Subscriber
 
 
 class LoginForm(FlaskForm):
@@ -73,3 +73,18 @@ class LaunchFilterForm(FlaskForm):
     launch_site = SelectField("Launch Site", coerce=int, choices=[])
     per_page = SelectField("Launches per Page", coerce=int, choices=[(10, '10'), (20, '20'), (30, '30')], default=10)
     submit = SubmitField("Filter")
+
+
+class SubscriptionForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    name = StringField("Full name", validators=[Length(min=4, max=64), DataRequired(),
+                                                Regexp(r'^[a-zA-Z\s]+$',
+                                                       message="Full name must contain only letters and spaces.")
+                                                ])
+    submit = SubmitField("Subscribe")
+
+    def validate_email(self, email):
+        if self.email.data and self.email.validate(self):
+            subscriber = db.session.scalar(select(Subscriber).where(Subscriber.email == email.data))
+            if subscriber is not None and subscriber.is_confirmed:
+                raise ValidationError("Email is already subscribed.")

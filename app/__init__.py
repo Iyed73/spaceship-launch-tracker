@@ -8,6 +8,10 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail
 from flask_moment import Moment
+from redis import Redis
+import rq
+from apscheduler.schedulers.background import BackgroundScheduler
+from app.scheduled_jobs.launch_reminder_job import remind_subscribers
 
 
 db = SQLAlchemy()
@@ -20,6 +24,8 @@ limiter = Limiter(
 )
 mail = Mail()
 moment = Moment()
+scheduler = BackgroundScheduler()
+task_queue = None
 
 
 def create_app(config):
@@ -38,12 +44,24 @@ def create_app(config):
     mail.init_app(app)
     moment.init_app(app)
 
-    from app.routes import authentication, main, mission_control, launches
+    app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "Litera"
 
+    app.redis = Redis.from_url(app.config["REDIS_URL"])
+    global task_queue
+    task_queue = rq.Queue(connection=app.redis)
+    app.task_queue = task_queue
+    app.scheduler = scheduler
+
+    from app.routes import authentication, main, mission_control, launches, subscription
     app.register_blueprint(authentication.bp, url_prefix="/authentication")
     app.register_blueprint(main.bp)
     app.register_blueprint(mission_control.bp)
     app.register_blueprint(launches.bp)
+    app.register_blueprint(subscription.bp, url_prefix="/subscription")
+
+    if scheduler.state == 0:
+        scheduler.add_job(remind_subscribers, 'interval', hours=1)
+        scheduler.start()
 
     return app
 

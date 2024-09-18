@@ -1,0 +1,11 @@
+<div>
+    <p>Hello {{ receiver }},</p>
+    <p>We are excited to announce a new launch:</p>
+    <p><strong>Mission:</strong> {{ launch.mission }}</p>
+    <p><strong>Description:</strong> {{ launch.description }}</p>
+    <p><strong>Launch Time:</strong> {{ launch.launch_timestamp.strftime('%Y-%m-%d %H:%M:%S') }} GMT</p>
+    <p><strong>Launch Site:</strong> {{ launch.launch_site.name }}</p>
+    <p><strong>Spaceship:</strong> {{ launch.spaceship.name }}</p>
+    <p>Stay tuned for more updates!</p>
+</div>
+<br/>

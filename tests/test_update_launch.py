@@ -2,7 +2,9 @@ from app.models import Spaceship, Launch, LaunchSite
 from app import db
 
 
-def test_update_launch_success(app, login_admin):
+def test_update_launch_success(mocker, app, login_admin):
+    mocker.patch("app.views.mission_control.update_launch.UpdateLaunchView.create_event")
+
     with app.app_context():
         spaceship1 = Spaceship(name="test spaceship", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)
         launch_site1 = LaunchSite(name="test launch site", location="somewhere")
@@ -20,6 +22,7 @@ def test_update_launch_success(app, login_admin):
         db.session.refresh(spaceship2)
         db.session.refresh(launch_site1)
         db.session.refresh(launch_site2)
+
     data = {"mission": "updated mission", "launch_timestamp": "2024-06-28T10:37", "spaceship_id": spaceship2.id,
             "launch_site_id": launch_site2.id}
     response = login_admin.post(f"/launch/{launch.id}", data=data, follow_redirects=True)

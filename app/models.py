@@ -1,6 +1,6 @@
 from typing import Optional
-from sqlalchemy import func,  String, Integer, ForeignKey, Table, Column, DateTime, Boolean
-from sqlalchemy.orm import Mapped, mapped_column, Session, relationship, WriteOnlyMapped
+from sqlalchemy import String, ForeignKey, Column, DateTime, Boolean, Enum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app import db
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
@@ -10,6 +10,8 @@ from flask_login import UserMixin
 from app import login
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
+import rq
+from app.tasks.event_categories import EventCategory
 
 
 class TimestampMixin:
@@ -94,6 +96,9 @@ class Launch(db.Model, TimestampMixin, CreatedByMixin):
         lazy="joined", back_populates="launches"
     )
 
+    launch_events: Mapped[list["LaunchEvent"]] = relationship(
+        cascade="all, delete-orphan", back_populates="launch")
+
     def __repr__(self):
         return f"{self.id.hex}: {self.mission}"
 
@@ -128,3 +133,30 @@ class LaunchSite(db.Model, TimestampMixin, CreatedByMixin):
 
     def __repr__(self):
         return f"{self.id}: {self.name}"
+
+
+class Subscriber(db.Model, TimestampMixin):
+    __tablename__ = "subscribers"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(128), index=True, unique=True)
+    name: Mapped[str] = mapped_column(String(128))
+    is_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    def generate_confirmation_token(self):
+        serializer = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
+        return serializer.dumps(self.email, salt=current_app.config["SECURITY_PASSWORD_SALT"])
+
+
+class LaunchEvent(db.Model, TimestampMixin):
+    __tablename__ = "launch_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(String(128), index=True)
+    description: Mapped[Optional[str]] = mapped_column(String(256))
+    launch_id: Mapped[UUID] = mapped_column(ForeignKey("launches.id"), index=True)
+    category: Mapped[EventCategory] = mapped_column(Enum(EventCategory))
+
+    launch: Mapped["Launch"] = relationship(
+        lazy="joined", back_populates="launch_events"
+    )

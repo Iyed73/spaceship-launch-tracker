@@ -23,6 +23,7 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ['DEV_DATABASE_URL']
+    REDIS_URL = os.environ['REDIS_URL']
 
 
 class TestingConfig(Config):
@@ -30,4 +31,4 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ['TEST_DATABASE_URL']
     RATELIMIT_ENABLED = True
     WTF_CSRF_ENABLED = False
-
+    REDIS_URL = os.environ['REDIS_URL']
