@@ -103,7 +103,7 @@ def launch(app):
 
 
 @pytest.fixture()
-def launch_after_2_hours(app):
+def launch_after_1_hour(app):
     with app.app_context():
         launch_timestamp = datetime.utcnow() + timedelta(hours=1)
         launch_timestamp = launch_timestamp.strftime("%Y-%m-%dT%H:%M")
@@ -119,3 +119,10 @@ def launch_after_2_hours(app):
         db.session.refresh(spaceship)
         db.session.refresh(launch_site)
     return launch
+
+
+@pytest.fixture()
+def mock_send_email_notification(mocker):
+    mock_send_email_notification = mocker.patch("app.tasks.launch_update.send_email_notification")
+    return mock_send_email_notification
+
