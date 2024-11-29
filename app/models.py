@@ -10,8 +10,6 @@ from flask_login import UserMixin
 from app import login
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
-import rq
-from app.tasks.event_categories import EventCategory
 
 
 class TimestampMixin:
@@ -96,7 +94,7 @@ class Launch(db.Model, TimestampMixin, CreatedByMixin):
         lazy="joined", back_populates="launches"
     )
 
-    launch_events: Mapped[list["LaunchEvent"]] = relationship(
+    launch_reminders: Mapped[list["LaunchReminder"]] = relationship(
         cascade="all, delete-orphan", back_populates="launch")
 
     def __repr__(self):
@@ -148,15 +146,15 @@ class Subscriber(db.Model, TimestampMixin):
         return serializer.dumps(self.email, salt=current_app.config["SECURITY_PASSWORD_SALT"])
 
 
-class LaunchEvent(db.Model, TimestampMixin):
-    __tablename__ = "launch_events"
+class LaunchReminder(db.Model, TimestampMixin):
+    __tablename__ = "launch_reminders"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    name: Mapped[str] = mapped_column(String(128), index=True)
-    description: Mapped[Optional[str]] = mapped_column(String(256))
+    id: Mapped[int] = mapped_column(primary_key=True)
     launch_id: Mapped[UUID] = mapped_column(ForeignKey("launches.id"), index=True)
-    category: Mapped[EventCategory] = mapped_column(Enum(EventCategory))
 
     launch: Mapped["Launch"] = relationship(
-        lazy="joined", back_populates="launch_events"
+        lazy="joined", back_populates="launch_reminders"
     )
+
+
+

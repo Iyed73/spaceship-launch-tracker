@@ -24,6 +24,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ['DEV_DATABASE_URL']
     REDIS_URL = os.environ['REDIS_URL']
+    SCHEDULER_API_ENABLED = True
 
 
 class TestingConfig(Config):

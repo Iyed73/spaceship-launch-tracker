@@ -1,5 +1,4 @@
 from flask import Flask
-from config import DevelopmentConfig
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -10,8 +9,7 @@ from flask_mail import Mail
 from flask_moment import Moment
 from redis import Redis
 import rq
-from apscheduler.schedulers.background import BackgroundScheduler
-from app.scheduled_jobs.launch_reminder_job import remind_subscribers
+from flask_apscheduler import APScheduler
 
 
 db = SQLAlchemy()
@@ -24,7 +22,7 @@ limiter = Limiter(
 )
 mail = Mail()
 moment = Moment()
-scheduler = BackgroundScheduler()
+scheduler = APScheduler()
 task_queue = None
 
 
@@ -43,6 +41,11 @@ def create_app(config):
     limiter.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
+    scheduler.init_app(app)
+
+    if not app.testing:
+        scheduler.start()
+        from app.scheduled_jobs.launch_reminder_job import remind_subscribers
 
     app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "Litera"
 
@@ -55,15 +58,8 @@ def create_app(config):
     from app.routes import authentication, main, mission_control, launches, subscription
     app.register_blueprint(authentication.bp, url_prefix="/authentication")
     app.register_blueprint(main.bp)
-    app.register_blueprint(mission_control.bp)
     app.register_blueprint(launches.bp)
     app.register_blueprint(subscription.bp, url_prefix="/subscription")
-
-    if scheduler.state == 0:
-        scheduler.add_job(remind_subscribers, 'interval', hours=1)
-        scheduler.start()
+    app.register_blueprint(mission_control.bp)
 
     return app
-
-
-app = create_app(DevelopmentConfig)
