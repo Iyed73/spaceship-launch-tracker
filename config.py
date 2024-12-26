@@ -18,6 +18,10 @@ class Config:
     MAIL_USERNAME = os.environ['MAIL_USERNAME']
     MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
     MAIL_DEFAULT_SENDER = os.environ['MAIL_DEFAULT_SENDER']
+    SUBSCRIBERS_REMINDER_JOB_INTERVAL = 30 * 60
+    LAUNCH_REMINDER_WINDOW = 2 * 60 * 60
+    TASK_QUEUE_MAX_RETRIES = 3
+
 
 
 class DevelopmentConfig(Config):

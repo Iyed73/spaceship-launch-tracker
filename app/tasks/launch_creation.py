@@ -4,6 +4,7 @@ from app.models import Subscriber
 from rq.job import Retry
 from config import DevelopmentConfig
 from app.tasks.send_email_notification import send_email_notification
+from config import Config
 
 
 app = create_app(DevelopmentConfig)
@@ -20,5 +21,5 @@ def process_launch_creation_notification(launch):
                                recipient=subscriber.email,
                                content=html,
                                subject=subject,
-                               retry=Retry(max=3))
+                               retry=Retry(max=Config.TASK_QUEUE_MAX_RETRIES))
 
