@@ -1,4 +1,3 @@
-from sqlalchemy import not_
 from datetime import datetime, timedelta
 from app.models import Launch, LaunchReminder
 from app import db, scheduler
@@ -10,14 +9,7 @@ def remind_subscribers():
 
     with app.app_context():
         now = datetime.now()
-        launches = (
-            db.session.query(Launch)
-            .filter(
-                Launch.launch_timestamp.between(now, now + timedelta(hours=2)),
-                not_(Launch.launch_reminders.any())
-            )
-            .all()
-        )
+        launches = Launch.get_upcoming_with_no_reminders(now, timedelta(hours=2))
 
         for launch in launches:
             app.task_queue.enqueue(f"app.tasks.launch_reminder.process_launch_reminder_notification", launch=launch)

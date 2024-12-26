@@ -10,6 +10,8 @@ from flask_login import UserMixin
 from app import login
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app
+from sqlalchemy import not_, and_
+from datetime import datetime, timedelta
 
 
 class TimestampMixin:
@@ -96,6 +98,13 @@ class Launch(db.Model, TimestampMixin, CreatedByMixin):
 
     launch_reminders: Mapped[list["LaunchReminder"]] = relationship(
         cascade="all, delete-orphan", back_populates="launch")
+
+    @classmethod
+    def get_upcoming_with_no_reminders(cls, now: datetime, time_delta: timedelta):
+        return db.session.query(cls).filter(
+            cls.launch_timestamp.between(now, now + time_delta),
+            not_(cls.launch_reminders.any())
+        ).all()
 
     def __repr__(self):
         return f"{self.id.hex}: {self.mission}"
