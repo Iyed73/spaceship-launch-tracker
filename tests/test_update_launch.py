@@ -3,7 +3,7 @@ from app import db
 
 
 def test_update_launch_success(mocker, app, login_admin):
-    mocker.patch("app.views.mission_control.update_launch.UpdateLaunchView.create_event")
+    mocker.patch("app.views.mission_control.update_launch.UpdateLaunchView.notify")
 
     with app.app_context():
         spaceship1 = Spaceship(name="test spaceship", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)

@@ -18,12 +18,17 @@ class Config:
     MAIL_USERNAME = os.environ['MAIL_USERNAME']
     MAIL_PASSWORD = os.environ['MAIL_PASSWORD']
     MAIL_DEFAULT_SENDER = os.environ['MAIL_DEFAULT_SENDER']
+    SUBSCRIBERS_REMINDER_JOB_INTERVAL = 30 * 60
+    LAUNCH_REMINDER_WINDOW = 2 * 60 * 60
+    TASK_QUEUE_MAX_RETRIES = 3
+
 
 
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ['DEV_DATABASE_URL']
     REDIS_URL = os.environ['REDIS_URL']
+    SCHEDULER_API_ENABLED = True
 
 
 class TestingConfig(Config):

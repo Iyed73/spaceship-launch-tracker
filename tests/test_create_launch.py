@@ -16,7 +16,7 @@ def setup_launch_data(app):
 
 
 def test_create_launch_success(mocker, app, login_admin):
-    mocker.patch("app.views.mission_control.create_launch.CreateLaunchView.create_event")
+    mocker.patch("app.views.mission_control.create_launch.CreateLaunchView.notify")
 
     spaceship, launch_site = setup_launch_data(app)
     data = {"mission": "test mission", "launch_timestamp": "2024-06-27T11:57", "spaceship_id": spaceship.id,
