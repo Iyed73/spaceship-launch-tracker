@@ -62,4 +62,7 @@ def create_app(config):
     app.register_blueprint(subscription.bp, url_prefix="/subscription")
     app.register_blueprint(mission_control.bp)
 
+    from app.commands.seed import seed
+    app.cli.add_command(seed)
+
     return app

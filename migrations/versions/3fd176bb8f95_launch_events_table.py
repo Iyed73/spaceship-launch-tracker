@@ -44,3 +44,4 @@ def downgrade():
 
     op.drop_table('launch_events')
     # ### end Alembic commands ###
+    sa.Enum(name='eventcategory').drop(op.get_bind())
