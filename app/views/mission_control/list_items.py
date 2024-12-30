@@ -10,13 +10,15 @@ class BaseListView(View):
 
     columns = []
 
-    def __init__(self, model_class, model_name, title, create_reverse_url, update_reverse_url, delete_reverse_url):
+    def __init__(self, model_class, model_name, title, create_reverse_url, update_reverse_url, delete_reverse_url,
+                 history_reverse_url=None):
         self.model_class = model_class
         self.model_name = model_name
         self.title = title
         self.create_reverse_url = create_reverse_url
         self.update_reverse_url = update_reverse_url
         self.delete_reverse_url = delete_reverse_url
+        self.history_reverse_url = history_reverse_url
 
     def get_objects(self):
         return self.model_class.query.all()
@@ -30,6 +32,9 @@ class BaseListView(View):
     def get_delete_url(self, object_id):
         return url_for(self.delete_reverse_url, id=object_id)
 
+    def get_history_url(self, object_id):
+        return url_for(self.history_reverse_url, id=object_id)
+
     def dispatch_request(self):
         return render_template("mission_control/list_objects.html",
                                title=self.title,
@@ -39,6 +44,7 @@ class BaseListView(View):
                                objects=self.get_objects(),
                                update_url=self.get_update_url,
                                delete_url=self.get_delete_url,
+                               history_url=self.get_history_url if self.history_reverse_url else None,
                                csrf=generate_csrf())
 
 
@@ -71,7 +77,7 @@ class ListLaunchSitesView(BaseListView):
 
 
 class ListLaunchesView(BaseListView):
-    columns = ["Mission", "Description", "Launch Timestamp", "Spaceship", "Launch Site"]
+    columns = ["Mission", "Description", "Launch Timestamp", "Status", "Spaceship", "Launch Site"]
 
     def __init__(self):
         super().__init__(
@@ -80,5 +86,6 @@ class ListLaunchesView(BaseListView):
             title="Launches",
             create_reverse_url="mission_control.create_launch",
             update_reverse_url="mission_control.update_launch",
-            delete_reverse_url="mission_control.delete_launch"
+            delete_reverse_url="mission_control.delete_launch",
+            history_reverse_url="mission_control.launch_history"
         )

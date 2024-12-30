@@ -2,26 +2,34 @@ from flask.views import MethodView
 from flask import render_template, flash, url_for, redirect
 from flask_login import current_user
 from app.models import Launch, Spaceship, LaunchSite
-from app.forms import LaunchForm
+from app.forms import LaunchUpdateForm
 from app import db
 from app.decorators import admin_required
 from flask import current_app
+from sqlalchemy.orm.exc import StaleDataError
 
 
 class UpdateLaunchView(MethodView):
     decorators = [admin_required]
 
     def __init__(self):
-        self.form = LaunchForm()
+        self.form = LaunchUpdateForm()
         self.form.spaceship_id.choices = [(spaceship.id, spaceship.name) for spaceship in Spaceship.query.all()]
         self.form.launch_site_id.choices = [(site.id, site.name) for site in LaunchSite.query.all()]
 
     @staticmethod
     def notify(launch):
-        current_app.task_queue.enqueue(f"app.tasks.launch_update.process_launch_update_notification", launch=launch)
+        current_app.task_queue.enqueue(f"app.tasks.launch_update.process_launch_update_notification",
+                                       launch_id=launch.id)
+
+    def get_launch(self, id):
+        launch = Launch.query.get_or_404(id)
+        self.form.status.choices = [(status.value, status.value.capitalize())
+                                    for status in (launch.status, *launch.status.transitions)]
+        return launch
 
     def get(self, id):
-        launch = Launch.query.get_or_404(id)
+        launch = self.get_launch(id)
         self.form.process(obj=launch)
         return render_template(
             "mission_control/update_object.html",
@@ -30,12 +38,20 @@ class UpdateLaunchView(MethodView):
             model_name="Launch")
 
     def post(self, id):
-        launch = Launch.query.get_or_404(id)
+        launch = self.get_launch(id)
         if self.form.validate_on_submit():
-            self.form.populate_obj(launch)
-            launch.creator_id = current_user.id
-            db.session.commit()
-            self.notify(launch)
+            try:
+                if self.form.version.data != launch.version:
+                    raise StaleDataError
+                self.form.populate_obj(launch)
+                changed = launch.record_event(current_user.id)
+                db.session.commit()
+            except StaleDataError:
+                db.session.rollback()
+                flash("Launch was modified by someone else, please review the latest version.", "danger")
+                return redirect(url_for("mission_control.update_launch", id=id))
+            if changed:
+                self.notify(launch)
             flash("Launch updated successfully!", "success")
             return redirect(url_for("mission_control.list_launches"))
         return render_template(

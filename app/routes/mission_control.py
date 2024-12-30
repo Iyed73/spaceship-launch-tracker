@@ -9,6 +9,7 @@ from app.views.mission_control.list_items import ListSpaceshipsView, ListLaunchS
 from app.views.mission_control.delete_spaceship import DeleteSpaceshipView
 from app.views.mission_control.delete_launch import DeleteLaunchView
 from app.views.mission_control.delete_launchsite import DeleteLaunchSiteView
+from app.views.mission_control.launch_history import LaunchHistoryView
 from app.views.mission_control.panel import MissionControlView
 
 bp.add_url_rule("/panel",
@@ -49,3 +50,6 @@ bp.add_url_rule("/launch/<uuid:id>",
 
 bp.add_url_rule("/launch/<uuid:id>/delete",
                    view_func=DeleteLaunchView.as_view("delete_launch"))
+
+bp.add_url_rule("/launch/<uuid:id>/history",
+                   view_func=LaunchHistoryView.as_view("launch_history"))

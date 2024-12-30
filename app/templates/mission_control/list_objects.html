@@ -36,6 +36,11 @@
                                     <a href="{{ update_url(object.id) }}" class="btn btn-secondary btn-sm">
                                         <i class="bi bi-pencil-fill"></i> Edit
                                     </a>
+                                    {% if history_url %}
+                                        <a href="{{ history_url(object.id) }}" class="btn btn-info btn-sm">
+                                            <i class="bi bi-clock-history"></i> History
+                                        </a>
+                                    {% endif %}
                                     <form action="{{ delete_url(object.id) }}" method="post" style="display:inline;">
                                         <input type="hidden" name="csrf_token" value="{{ csrf }}">
                                         <button type="submit" class="btn btn-danger btn-sm">

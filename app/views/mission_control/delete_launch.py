@@ -1,6 +1,7 @@
 from flask import redirect, url_for, flash
 from flask.views import MethodView
-from app.models import Launch
+from flask_login import current_user
+from app.models import Launch, LaunchStatus
 from app import db
 from flask import current_app
 from app.decorators import admin_required
@@ -11,12 +12,18 @@ class DeleteLaunchView(MethodView):
 
     @staticmethod
     def notify(launch):
-        current_app.task_queue.enqueue(f"app.tasks.launch_cancellation.process_launch_cancellation_notification", launch=launch)
+        current_app.task_queue.enqueue(f"app.tasks.launch_cancellation.process_launch_cancellation_notification",
+                                       launch_id=launch.id)
 
     def post(self, id):
         launch = Launch.query.get_or_404(id)
-        db.session.delete(launch)
+        try:
+            launch.status = LaunchStatus.CANCELLED
+        except ValueError:
+            flash(f"A {launch.status} launch cannot be cancelled.", "danger")
+            return redirect(url_for("mission_control.list_launches"))
+        launch.record_event(current_user.id)
         db.session.commit()
         self.notify(launch)
-        flash("Launch deleted successfully!", "success")
+        flash("Launch cancelled successfully!", "success")
         return redirect(url_for("mission_control.list_launches"))

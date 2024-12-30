@@ -103,6 +103,12 @@ def launch(app):
 
 
 @pytest.fixture()
+def launch_data(launch):
+    return {"mission": "mission", "launch_timestamp": "2024-06-27T11:57", "spaceship_id": launch.spaceship_id,
+            "launch_site_id": launch.launch_site_id, "status": "scheduled", "version": launch.version}
+
+
+@pytest.fixture()
 def launch_after_1_hour(app):
     with app.app_context():
         launch_timestamp = datetime.utcnow() + timedelta(hours=1)

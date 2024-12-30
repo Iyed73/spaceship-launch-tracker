@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Launch History{% endblock %}
+{% block page_content %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-11">
+            <h1>{{ launch.mission }} History</h1>
+            <div class="table-responsive">
+                <table class="table table-bordered mt-3 text-center">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Author</th>
+                            <th>Changes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in launch.events %}
+                            <tr>
+                                <td>{{ moment(event.created_at).format("LLL") }}</td>
+                                <td>{{ event.creator.username }}</td>
+                                <td class="text-start">
+                                    {% for field, (old, new) in event.changes.items() %}
+                                        <p class="mb-0">
+                                            <strong>{{ field.replace("_", " ").capitalize() }}:</strong>
+                                            {% if old is not none %}{{ old }} &rarr; {% endif %}{{ new }}
+                                        </p>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}

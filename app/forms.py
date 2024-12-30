@@ -1,9 +1,10 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField, FloatField, DateTimeField
+from wtforms import (StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField, FloatField,
+                     DateTimeField, HiddenField)
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length, Regexp, Optional
 from sqlalchemy import select
 from app import db
-from app.models import User, Subscriber
+from app.models import User, Subscriber, LaunchStatus
 
 
 class LoginForm(FlaskForm):
@@ -54,7 +55,8 @@ class LaunchSiteForm(FlaskForm):
 
 class LaunchForm(FlaskForm):
     mission = StringField("Mission", validators=[DataRequired(), Length(max=128)])
-    description = TextAreaField("Description", validators=[Optional(), Length(max=1024)])
+    description = TextAreaField("Description", validators=[Optional(), Length(max=1024)],
+                                filters=[lambda value: value or None])
     launch_timestamp = DateTimeField(
         "Launch Timestamp",
         format="%Y-%m-%dT%H:%M",
@@ -63,6 +65,12 @@ class LaunchForm(FlaskForm):
     )
     spaceship_id = SelectField("Spaceship", coerce=int, choices=[])
     launch_site_id = SelectField("Launch Site", coerce=int, choices=[])
+    submit = SubmitField("Submit")
+
+
+class LaunchUpdateForm(LaunchForm):
+    status = SelectField("Status", coerce=LaunchStatus, choices=[])
+    version = HiddenField(filters=[lambda value: value and int(value)])
     submit = SubmitField("Submit")
 
 

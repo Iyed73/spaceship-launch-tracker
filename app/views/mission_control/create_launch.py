@@ -1,7 +1,7 @@
 from flask.views import MethodView
 from flask import render_template, flash, url_for, redirect
 from flask_login import current_user
-from app.models import Launch, Spaceship, LaunchSite
+from app.models import Launch, Spaceship, LaunchSite, LaunchStatus
 from app.forms import LaunchForm
 from app import db
 from app.decorators import admin_required
@@ -18,7 +18,8 @@ class CreateLaunchView(MethodView):
 
     @staticmethod
     def notify(launch):
-        current_app.task_queue.enqueue(f"app.tasks.launch_creation.process_launch_creation_notification", launch=launch)
+        current_app.task_queue.enqueue(f"app.tasks.launch_creation.process_launch_creation_notification",
+                                       launch_id=launch.id)
 
     def get(self):
         return render_template("mission_control/create_object.html",
@@ -29,9 +30,10 @@ class CreateLaunchView(MethodView):
     def post(self):
         form = self.form
         if form.validate_on_submit() and current_user.is_authenticated:
-            launch = Launch()
+            launch = Launch(status=LaunchStatus.SCHEDULED)
             form.populate_obj(launch)
             launch.creator_id = current_user.id
+            launch.record_event(current_user.id)
             db.session.add(launch)
             db.session.commit()
             self.notify(launch)

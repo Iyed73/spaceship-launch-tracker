@@ -1,6 +1,8 @@
+import enum
 from typing import Optional
-from sqlalchemy import String, ForeignKey, Column, DateTime, Boolean, Enum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import String, ForeignKey, Column, DateTime, Boolean, Enum, JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
+from sqlalchemy.orm.attributes import get_history
 from app import db
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
@@ -78,15 +80,50 @@ def load_user(id):
     return db.session.get(User, UUID(id))
 
 
+class LaunchStatus(str, enum.Enum):
+    SCHEDULED = "scheduled"
+    DELAYED = "delayed"
+    SCRUBBED = "scrubbed"
+    LAUNCHED = "launched"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+    @property
+    def transitions(self):
+        return LAUNCH_STATUS_TRANSITIONS[self]
+
+    def __str__(self):
+        return self.value
+
+
+LAUNCH_STATUS_TRANSITIONS = {
+    LaunchStatus.SCHEDULED: (LaunchStatus.DELAYED, LaunchStatus.SCRUBBED, LaunchStatus.LAUNCHED,
+                             LaunchStatus.CANCELLED),
+    LaunchStatus.DELAYED: (LaunchStatus.SCRUBBED, LaunchStatus.LAUNCHED, LaunchStatus.CANCELLED),
+    LaunchStatus.SCRUBBED: (LaunchStatus.SCHEDULED, LaunchStatus.CANCELLED),
+    LaunchStatus.LAUNCHED: (LaunchStatus.SUCCEEDED, LaunchStatus.FAILED),
+    LaunchStatus.SUCCEEDED: (),
+    LaunchStatus.FAILED: (),
+    LaunchStatus.CANCELLED: (),
+}
+
+
 class Launch(db.Model, TimestampMixin, CreatedByMixin):
     __tablename__ = "launches"
+
+    TRACKED_FIELDS = ("mission", "description", "launch_timestamp", "spaceship_id", "launch_site_id", "status")
 
     id: Mapped[UUID] = mapped_column(default=uuid4, primary_key=True)
     mission: Mapped[String] = mapped_column(String(128), index=True)
     description: Mapped[Optional[str]] = mapped_column(String(1024))
     launch_timestamp: Mapped[datetime]
+    status: Mapped[LaunchStatus] = mapped_column(Enum(LaunchStatus), default=LaunchStatus.SCHEDULED)
+    version: Mapped[int] = mapped_column(default=1)
     spaceship_id: Mapped[int] = mapped_column(ForeignKey("spaceships.id"), index=True)
     launch_site_id: Mapped[int] = mapped_column(ForeignKey("launch_sites.id"), index=True)
+
+    __mapper_args__ = {"version_id_col": version}
 
     spaceship: Mapped["Spaceship"] = relationship(
         lazy="joined", back_populates="launches"
@@ -99,12 +136,38 @@ class Launch(db.Model, TimestampMixin, CreatedByMixin):
     launch_reminders: Mapped[list["LaunchReminder"]] = relationship(
         cascade="all, delete-orphan", back_populates="launch")
 
+    events: Mapped[list["LaunchEvent"]] = relationship(
+        cascade="all, delete-orphan", back_populates="launch", order_by="LaunchEvent.id")
+
     @classmethod
     def get_upcoming_with_no_reminders(cls, now: datetime, time_delta: timedelta):
         return db.session.query(cls).filter(
             cls.launch_timestamp.between(now, now + time_delta),
+            cls.status.in_([LaunchStatus.SCHEDULED, LaunchStatus.DELAYED]),
             not_(cls.launch_reminders.any())
         ).all()
+
+    @validates("status")
+    def validate_status(self, key, status):
+        if self.status not in (None, status) and status not in self.status.transitions:
+            raise ValueError(f"Launch cannot go from {self.status} to {status}")
+        return status
+
+    def record_event(self, creator_id):
+        changes = {}
+        for field in self.TRACKED_FIELDS:
+            history = get_history(self, field)
+            old = history.deleted[0] if history.deleted else None
+            new = history.added[0] if history.added else None
+            if old != new:
+                changes[field] = [self.serialize(old), self.serialize(new)]
+        if changes:
+            self.events.append(LaunchEvent(changes=changes, creator_id=creator_id))
+        return bool(changes)
+
+    @staticmethod
+    def serialize(value):
+        return value.isoformat() if isinstance(value, datetime) else value
 
     def __repr__(self):
         return f"{self.id.hex}: {self.mission}"
@@ -166,4 +229,12 @@ class LaunchReminder(db.Model, TimestampMixin):
     )
 
 
+class LaunchEvent(db.Model, CreatedByMixin):
+    __tablename__ = "launch_events"
 
+    id: Mapped[int] = mapped_column(primary_key=True)
+    launch_id: Mapped[UUID] = mapped_column(ForeignKey("launches.id"), index=True)
+    changes: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))
+
+    launch: Mapped["Launch"] = relationship(back_populates="events")

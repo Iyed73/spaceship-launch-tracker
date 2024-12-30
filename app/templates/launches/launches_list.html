@@ -17,7 +17,10 @@
             <div class="card shadow-sm h-100">
                 <div class="card-header bg-primary text-white">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">{{ launch.mission }}</h5>
+                        <h5 class="card-title mb-0">
+                            {{ launch.mission }}
+                            <span class="badge bg-light text-primary ms-2">{{ launch.status | capitalize }}</span>
+                        </h5>
                         {% if status == "Upcoming" %}
                         <button class="btn btn-secondary btn-sm">Set Reminder</button>
                         {% endif %}

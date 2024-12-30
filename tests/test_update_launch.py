@@ -24,7 +24,7 @@ def test_update_launch_success(mocker, app, login_admin):
         db.session.refresh(launch_site2)
 
     data = {"mission": "updated mission", "launch_timestamp": "2024-06-28T10:37", "spaceship_id": spaceship2.id,
-            "launch_site_id": launch_site2.id}
+            "launch_site_id": launch_site2.id, "status": "scheduled", "version": launch.version}
     response = login_admin.post(f"/launch/{launch.id}", data=data, follow_redirects=True)
     assert response.status_code == 200
     with app.app_context():
@@ -33,6 +33,18 @@ def test_update_launch_success(mocker, app, login_admin):
         assert str(updated_launch.launch_timestamp) == "2024-06-28 10:37:00"
         assert updated_launch.spaceship_id == spaceship2.id
         assert updated_launch.launch_site_id == launch_site2.id
+        assert updated_launch.version == launch.version + 1
+
+
+def test_update_launch_fails_stale_version(mocker, app, login_admin, launch, launch_data):
+    mocker.patch("app.views.mission_control.update_launch.UpdateLaunchView.notify")
+
+    login_admin.post(f"/launch/{launch.id}", data={**launch_data, "mission": "first update"})
+    response = login_admin.post(f"/launch/{launch.id}", data={**launch_data, "mission": "second update"},
+                                follow_redirects=True)
+    assert b"Launch was modified by someone else" in response.data
+    with app.app_context():
+        assert Launch.query.get(launch.id).mission == "first update"
 
 
 def test_update_launch_not_found(app, login_admin):

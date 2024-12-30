@@ -14,7 +14,7 @@ def remind_subscribers():
         launches = Launch.get_upcoming_with_no_reminders(now, timedelta(seconds=Config.LAUNCH_REMINDER_WINDOW))
 
         for launch in launches:
-            app.task_queue.enqueue(f"app.tasks.launch_reminder.process_launch_reminder_notification", launch=launch)
+            app.task_queue.enqueue(f"app.tasks.launch_reminder.process_launch_reminder_notification", launch_id=launch.id)
             reminder = LaunchReminder(launch=launch)
             db.session.add(reminder)
             db.session.commit()

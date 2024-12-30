@@ -1,6 +1,6 @@
-from app import create_app
+from app import create_app, db
 from flask import render_template
-from app.models import Subscriber
+from app.models import Subscriber, Launch
 from rq.job import Retry
 from config import DevelopmentConfig
 from app.tasks.send_email_notification import send_email_notification
@@ -11,7 +11,8 @@ app = create_app(DevelopmentConfig)
 app.app_context().push()
 
 
-def process_launch_cancellation_notification(launch):
+def process_launch_cancellation_notification(launch_id):
+    launch = db.session.get(Launch, launch_id)
     subscribers = Subscriber.query.filter_by(is_confirmed=True).all()
 
     for subscriber in subscribers:
