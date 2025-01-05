@@ -3,9 +3,11 @@ from flask.views import MethodView
 from datetime import datetime
 from app.models import Launch, Spaceship, LaunchSite
 from app.forms import LaunchFilterForm
+from app import limiter
 
 
 class PastLaunchesView(MethodView):
+    @limiter.limit("30 per minute")
     def get(self):
         now = datetime.now()
         page = request.args.get("page", 1, type=int)

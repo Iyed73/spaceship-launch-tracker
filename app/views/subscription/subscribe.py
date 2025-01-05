@@ -27,7 +27,7 @@ class SubscribeView(MethodView):
     def get(self):
         return render_template("subscription/subscribe.html", title="subscribe", form=self.form)
 
-    @limiter.limit("5 per minute, 20 per hour")
+    @limiter.limit("5 per minute", "20 per hour")
     def post(self):
         if self.form.validate_on_submit():
             subscriber = db.session.scalar(select(Subscriber).where(Subscriber.email == self.form.email.data))

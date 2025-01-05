@@ -21,6 +21,9 @@ class Config:
     SUBSCRIBERS_REMINDER_JOB_INTERVAL = 30 * 60
     LAUNCH_REMINDER_WINDOW = 2 * 60 * 60
     TASK_QUEUE_MAX_RETRIES = 3
+    RATE_LIMIT_ENABLED = True
+    RATE_LIMIT_STRATEGY = os.environ.get('RATE_LIMIT_STRATEGY', 'fixed_window')
+    RATE_LIMIT_DEFAULTS = ["500 per day", "100 per hour"]
 
 
 
@@ -34,6 +37,6 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ['TEST_DATABASE_URL']
-    RATELIMIT_ENABLED = True
+    RATE_LIMIT_ENABLED = False
     WTF_CSRF_ENABLED = False
     REDIS_URL = os.environ['REDIS_URL']

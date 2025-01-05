@@ -1,5 +1,6 @@
 import pytest
-from app import create_app, db
+from uuid import uuid4
+from app import create_app, db, limiter
 from config import TestingConfig
 from app.models import User, Subscriber, Launch, LaunchSite, Spaceship
 from datetime import datetime, timedelta
@@ -22,6 +23,13 @@ def app():
 @pytest.fixture()
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture()
+def rate_limited_client(client, mocker):
+    mocker.patch.object(limiter, "enabled", True)
+    client.environ_base["REMOTE_ADDR"] = uuid4().hex
+    return client
 
 
 @pytest.fixture()
