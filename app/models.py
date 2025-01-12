@@ -1,6 +1,6 @@
 import enum
 from typing import Optional
-from sqlalchemy import String, ForeignKey, Column, DateTime, Boolean, Enum, JSON
+from sqlalchemy import String, ForeignKey, Column, DateTime, Boolean, Enum, JSON, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.orm.attributes import get_history
 from app import db
@@ -45,6 +45,9 @@ class User(db.Model, TimestampMixin, UserMixin):
     password_hash = mapped_column(String(256))
     role: Mapped[str] = mapped_column(String(128), default="spectator")
     is_confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    reminders: Mapped[list["UserReminder"]] = relationship(
+        cascade="all, delete-orphan", back_populates="user")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -134,6 +137,9 @@ class Launch(db.Model, TimestampMixin, CreatedByMixin):
     )
 
     launch_reminders: Mapped[list["LaunchReminder"]] = relationship(
+        cascade="all, delete-orphan", back_populates="launch")
+
+    user_reminders: Mapped[list["UserReminder"]] = relationship(
         cascade="all, delete-orphan", back_populates="launch")
 
     events: Mapped[list["LaunchEvent"]] = relationship(
@@ -227,6 +233,19 @@ class LaunchReminder(db.Model, TimestampMixin):
     launch: Mapped["Launch"] = relationship(
         lazy="joined", back_populates="launch_reminders"
     )
+
+
+class UserReminder(db.Model, TimestampMixin):
+    __tablename__ = "user_reminders"
+    __table_args__ = (UniqueConstraint("user_id", "launch_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    launch_id: Mapped[UUID] = mapped_column(ForeignKey("launches.id"), index=True)
+
+    user: Mapped["User"] = relationship(back_populates="reminders")
+
+    launch: Mapped["Launch"] = relationship(back_populates="user_reminders")
 
 
 class LaunchEvent(db.Model, CreatedByMixin):

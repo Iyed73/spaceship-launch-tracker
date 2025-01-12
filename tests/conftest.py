@@ -136,6 +136,23 @@ def launch_after_1_hour(app):
 
 
 @pytest.fixture()
+def upcoming_launch(app):
+    with app.app_context():
+        spaceship = Spaceship(name="spaceship", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)
+        launch_site = LaunchSite(name="launch site", location="somewhere")
+        launch = Launch(mission="mission", launch_timestamp=datetime.now() + timedelta(days=1), spaceship=spaceship,
+                        launch_site=launch_site)
+        db.session.add(spaceship)
+        db.session.add(launch_site)
+        db.session.add(launch)
+        db.session.commit()
+        db.session.refresh(launch)
+        db.session.refresh(spaceship)
+        db.session.refresh(launch_site)
+    return launch
+
+
+@pytest.fixture()
 def mock_send_email_notification(mocker):
     mock_send_email_notification = mocker.patch("app.tasks.launch_update.send_email_notification")
     return mock_send_email_notification

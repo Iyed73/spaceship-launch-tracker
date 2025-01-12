@@ -21,3 +21,14 @@ def admin_required(func):
             return redirect(url_for("main.index"))
         return func(*args, **kwargs)
     return decorated_function
+
+
+def spectator_required(func):
+    @wraps(func)
+    @login_required
+    def decorated_function(*args, **kwargs):
+        if current_user.role != "spectator":
+            flash("You don't have permission to access this page.", "warning")
+            return redirect(url_for("main.index"))
+        return func(*args, **kwargs)
+    return decorated_function

@@ -96,3 +96,7 @@ class SubscriptionForm(FlaskForm):
             subscriber = db.session.scalar(select(Subscriber).where(Subscriber.email == email.data))
             if subscriber is not None and subscriber.is_confirmed:
                 raise ValidationError("Email is already subscribed.")
+
+
+class ReminderForm(FlaskForm):
+    pass

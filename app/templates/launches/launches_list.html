@@ -21,8 +21,25 @@
                             {{ launch.mission }}
                             <span class="badge bg-light text-primary ms-2">{{ launch.status | capitalize }}</span>
                         </h5>
-                        {% if status == "Upcoming" %}
-                        <button class="btn btn-secondary btn-sm">Set Reminder</button>
+                        {% if status != "Past" %}
+                            {% if not current_user.is_authenticated %}
+                            <a href="{{ url_for('authentication.login', next=request.full_path) }}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-bell"></i> Set Reminder
+                            </a>
+                            {% elif current_user.role == 'spectator' %}
+                            <form action="{{ url_for('launches.toggle_reminder', id=launch.id, next=request.full_path) }}" method="post">
+                                {{ reminder_form.hidden_tag() }}
+                                {% if launch.id in reminded_launch_ids %}
+                                <button type="submit" class="btn btn-light btn-sm">
+                                    <i class="bi bi-bell-fill"></i> Reminder Set
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-secondary btn-sm">
+                                    <i class="bi bi-bell"></i> Set Reminder
+                                </button>
+                                {% endif %}
+                            </form>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -49,10 +66,10 @@
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
             {% if pagination.has_prev %}
-            <a href="{{ url_for('launches.upcoming_launches', page=pagination.prev_num, spaceship=form.spaceship.data, launch_site=form.launch_site.data) }}" class="btn btn-primary">Previous</a>
+            <a href="{{ url_for(request.endpoint, page=pagination.prev_num, spaceship=form.spaceship.data, launch_site=form.launch_site.data) }}" class="btn btn-primary">Previous</a>
             {% endif %}
             {% if pagination.has_next %}
-            <a href="{{ url_for('launches.upcoming_launches', page=pagination.next_num, spaceship=form.spaceship.data, launch_site=form.launch_site.data) }}" class="btn btn-primary">Next</a>
+            <a href="{{ url_for(request.endpoint, page=pagination.next_num, spaceship=form.spaceship.data, launch_site=form.launch_site.data) }}" class="btn btn-primary">Next</a>
             {% endif %}
         </div>
     </div>
