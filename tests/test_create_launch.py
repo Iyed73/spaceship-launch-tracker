@@ -1,3 +1,4 @@
+from redis.exceptions import ConnectionError
 from app.models import Spaceship, Launch, LaunchSite
 from app import db
 from urllib.parse import urlparse
@@ -37,3 +38,15 @@ def test_create_launch_fails_unauthorized(app, login_user):
     login_user.post("/launch/create", data=data, follow_redirects=True)
     with app.app_context():
         assert Launch.query.count() == 0
+
+
+def test_create_launch_success_queue_unavailable(app, login_admin, mocked_queue):
+    mocked_queue.side_effect = ConnectionError
+    spaceship, launch_site = setup_launch_data(app)
+    data = {"mission": "test mission", "launch_timestamp": "2024-06-27T11:57", "spaceship_id": spaceship.id,
+            "launch_site_id": launch_site.id}
+    response = login_admin.post("/launch/create", data=data, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Subscribers could not be notified about this launch." in response.data
+    with app.app_context():
+        assert Launch.query.count() == 1

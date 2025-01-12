@@ -4,6 +4,7 @@ from flask_login import current_user
 from app.models import Launch, LaunchStatus
 from app import db
 from flask import current_app
+from redis.exceptions import RedisError
 from app.decorators import admin_required
 
 
@@ -12,8 +13,12 @@ class DeleteLaunchView(MethodView):
 
     @staticmethod
     def notify(launch):
-        current_app.task_queue.enqueue(f"app.tasks.launch_cancellation.process_launch_cancellation_notification",
-                                       launch_id=launch.id)
+        try:
+            current_app.task_queue.enqueue(f"app.tasks.launch_cancellation.process_launch_cancellation_notification",
+                                           launch_id=launch.id)
+        except RedisError:
+            current_app.logger.exception("Failed to queue launch cancellation notification")
+            flash("Subscribers could not be notified about this launch.", "warning")
 
     def post(self, id):
         launch = Launch.query.get_or_404(id)

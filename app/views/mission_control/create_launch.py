@@ -6,6 +6,7 @@ from app.forms import LaunchForm
 from app import db
 from app.decorators import admin_required
 from flask import current_app
+from redis.exceptions import RedisError
 
 
 class CreateLaunchView(MethodView):
@@ -18,8 +19,12 @@ class CreateLaunchView(MethodView):
 
     @staticmethod
     def notify(launch):
-        current_app.task_queue.enqueue(f"app.tasks.launch_creation.process_launch_creation_notification",
-                                       launch_id=launch.id)
+        try:
+            current_app.task_queue.enqueue(f"app.tasks.launch_creation.process_launch_creation_notification",
+                                           launch_id=launch.id)
+        except RedisError:
+            current_app.logger.exception("Failed to queue launch creation notification")
+            flash("Subscribers could not be notified about this launch.", "warning")
 
     def get(self):
         return render_template("mission_control/create_object.html",

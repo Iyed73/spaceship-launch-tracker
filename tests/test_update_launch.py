@@ -1,3 +1,4 @@
+from redis.exceptions import ConnectionError
 from app.models import Spaceship, Launch, LaunchSite
 from app import db
 
@@ -45,6 +46,16 @@ def test_update_launch_fails_stale_version(mocker, app, login_admin, launch, lau
     assert b"Launch was modified by someone else" in response.data
     with app.app_context():
         assert Launch.query.get(launch.id).mission == "first update"
+
+
+def test_update_launch_success_queue_unavailable(app, login_admin, launch, launch_data, mocked_queue):
+    mocked_queue.side_effect = ConnectionError
+    response = login_admin.post(f"/launch/{launch.id}", data={**launch_data, "mission": "updated mission"},
+                                follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Subscribers could not be notified about this launch." in response.data
+    with app.app_context():
+        assert Launch.query.get(launch.id).mission == "updated mission"
 
 
 def test_update_launch_not_found(app, login_admin):

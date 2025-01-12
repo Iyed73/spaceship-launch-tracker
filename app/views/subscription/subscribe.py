@@ -5,7 +5,7 @@ from app.models import Subscriber
 from app.forms import SubscriptionForm
 from app import db, limiter
 from flask_mail import Message
-from app import mail
+from app.email import send_email
 from sqlalchemy import select
 
 
@@ -22,7 +22,7 @@ class SubscribeView(MethodView):
         subject = "Confirm Your Email"
         message.html = html
         message.subject = subject
-        mail.send(message)
+        return send_email(message)
 
     def get(self):
         return render_template("subscription/subscribe.html", title="subscribe", form=self.form)
@@ -31,14 +31,16 @@ class SubscribeView(MethodView):
     def post(self):
         if self.form.validate_on_submit():
             subscriber = db.session.scalar(select(Subscriber).where(Subscriber.email == self.form.email.data))
-            if subscriber is not None:
-                self.send_confirmation_email(subscriber)
-                flash("You have already subscribed before, please confirm your email.", "warning")
-            else:
+            is_new = subscriber is None
+            if is_new:
                 subscriber = Subscriber(email=self.form.email.data, name=self.form.name.data)
                 db.session.add(subscriber)
                 db.session.commit()
-                self.send_confirmation_email(subscriber)
+            if not self.send_confirmation_email(subscriber):
+                flash("An error occurred, please try again later.", "danger")
+            elif is_new:
                 flash("Please confirm your email to become a subscriber.", "success")
+            else:
+                flash("You have already subscribed before, please confirm your email.", "warning")
             return redirect(url_for("main.index"))
         return render_template("subscription/subscribe.html", title="subscribe", form=self.form)

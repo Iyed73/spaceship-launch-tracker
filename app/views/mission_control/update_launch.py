@@ -6,6 +6,7 @@ from app.forms import LaunchUpdateForm
 from app import db
 from app.decorators import admin_required
 from flask import current_app
+from redis.exceptions import RedisError
 from sqlalchemy.orm.exc import StaleDataError
 
 
@@ -19,8 +20,12 @@ class UpdateLaunchView(MethodView):
 
     @staticmethod
     def notify(launch):
-        current_app.task_queue.enqueue(f"app.tasks.launch_update.process_launch_update_notification",
-                                       launch_id=launch.id)
+        try:
+            current_app.task_queue.enqueue(f"app.tasks.launch_update.process_launch_update_notification",
+                                           launch_id=launch.id)
+        except RedisError:
+            current_app.logger.exception("Failed to queue launch update notification")
+            flash("Subscribers could not be notified about this launch.", "warning")
 
     def get_launch(self, id):
         launch = Launch.query.get_or_404(id)

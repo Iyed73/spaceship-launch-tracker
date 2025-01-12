@@ -1,3 +1,4 @@
+from redis.exceptions import ConnectionError
 from app.models import Launch, LaunchStatus
 from app import db
 from urllib.parse import urlparse
@@ -30,3 +31,12 @@ def test_cancel_launch_fails_unauthorized(app, login_user, launch):
     login_user.post(f"/launch/{launch.id}/delete", follow_redirects=True)
     with app.app_context():
         assert Launch.query.first().status == LaunchStatus.SCHEDULED
+
+
+def test_cancel_launch_success_queue_unavailable(app, login_admin, launch, mocked_queue):
+    mocked_queue.side_effect = ConnectionError
+    response = login_admin.post(f"/launch/{launch.id}/delete", follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Subscribers could not be notified about this launch." in response.data
+    with app.app_context():
+        assert Launch.query.first().status == LaunchStatus.CANCELLED

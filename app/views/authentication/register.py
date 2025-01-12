@@ -5,7 +5,7 @@ from app.models import User
 from app.forms import RegistrationForm
 from app import db, limiter
 from flask_mail import Message
-from app import mail
+from app.email import send_email
 from app.decorators import logged_out_required
 
 
@@ -24,7 +24,7 @@ class RegisterView(MethodView):
         subject = "Confirm Your Account"
         message.html = html
         message.subject = subject
-        mail.send(message)
+        return send_email(message)
 
     def get(self):
         return render_template("authentication/register.html", title="Register", form=self.form)
@@ -36,8 +36,12 @@ class RegisterView(MethodView):
                         email=self.form.email.data)
             user.set_password(self.form.password.data)
             db.session.add(user)
+            db.session.flush()
+            if not self.send_confirmation_email(user):
+                db.session.rollback()
+                flash("An error occurred, please try again later.", "danger")
+                return render_template("authentication/register.html", title="Register", form=self.form)
             db.session.commit()
-            self.send_confirmation_email(user)
             flash("Congratulations, you are now a registered user!", "success")
             flash("A confirmation email has been sent to you by email.", "success")
             return redirect(url_for("authentication.login"))

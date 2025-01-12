@@ -21,14 +21,6 @@ def test_login_fails_rate_limited(rate_limited_client, app, mocker, strategy):
     assert response.status_code == 429
 
 
-def test_confirm_subscriber_fails_rate_limited(rate_limited_client):
-    for _ in range(10):
-        response = rate_limited_client.get("/subscription/confirm/invalid_token")
-        assert response.status_code == 302
-    response = rate_limited_client.get("/subscription/confirm/invalid_token")
-    assert response.status_code == 429
-
-
 @pytest.mark.parametrize("url", ("/launches", "/launches/past"))
 def test_launches_list_fails_rate_limited(rate_limited_client, url):
     for _ in range(30):

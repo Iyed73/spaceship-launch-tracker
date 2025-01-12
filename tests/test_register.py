@@ -1,3 +1,4 @@
+from smtplib import SMTPException
 from app.models import User
 from app import db
 
@@ -43,3 +44,17 @@ def test_register_fails_duplicate_user(client, app, mocker):
     assert response.status_code == 200
     assert not db.session.add.called
     assert not db.session.commit.called
+
+
+def test_register_fails_email_not_sent(client, app, mocker):
+    mocker.patch("app.email.mail.send", side_effect=SMTPException)
+
+    response = client.post("/authentication/register",
+                           data={"email": "test@test.com",
+                                 "username": "username",
+                                 "password": "password",
+                                 "password_confirmation": "password"})
+    assert response.status_code == 200
+    assert b"An error occurred, please try again later." in response.data
+    with app.app_context():
+        assert User.query.count() == 0
