@@ -3,6 +3,7 @@ from typing import Optional
 from sqlalchemy import String, ForeignKey, Column, DateTime, Boolean, Enum, JSON, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.orm.attributes import get_history
+from sqlalchemy.dialects.postgresql import insert
 from app import db
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
@@ -228,11 +229,17 @@ class LaunchReminder(db.Model, TimestampMixin):
     __tablename__ = "launch_reminders"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    launch_id: Mapped[UUID] = mapped_column(ForeignKey("launches.id"), index=True)
+    launch_id: Mapped[UUID] = mapped_column(ForeignKey("launches.id"), index=True, unique=True)
 
     launch: Mapped["Launch"] = relationship(
         lazy="joined", back_populates="launch_reminders"
     )
+
+    @classmethod
+    def claim(cls, launch_id):
+        statement = insert(cls).values(launch_id=launch_id).on_conflict_do_nothing(
+            index_elements=[cls.launch_id]).returning(cls.id)
+        return db.session.scalar(statement) is not None
 
 
 class UserReminder(db.Model, TimestampMixin):

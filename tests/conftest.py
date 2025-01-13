@@ -119,7 +119,7 @@ def launch_data(launch):
 @pytest.fixture()
 def launch_after_1_hour(app):
     with app.app_context():
-        launch_timestamp = datetime.utcnow() + timedelta(hours=1)
+        launch_timestamp = datetime.now() + timedelta(hours=1)
         launch_timestamp = launch_timestamp.strftime("%Y-%m-%dT%H:%M")
         spaceship = Spaceship(name="spaceship", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)
         launch_site = LaunchSite(name="launch site", location="somewhere")

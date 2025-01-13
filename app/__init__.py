@@ -8,6 +8,7 @@ from flask_moment import Moment
 from redis import Redis
 import rq
 from flask_apscheduler import APScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 from app.rate_limiting.limiter import RateLimiter
 
 
@@ -18,7 +19,7 @@ bootstrap = Bootstrap5()
 limiter = RateLimiter()
 mail = Mail()
 moment = Moment()
-scheduler = APScheduler()
+scheduler = APScheduler(BlockingScheduler())
 task_queue = None
 
 
@@ -38,10 +39,6 @@ def create_app(config):
     moment.init_app(app)
     scheduler.init_app(app)
 
-    if not app.testing:
-        scheduler.start()
-        from app.scheduled_jobs.launch_reminder_job import remind_subscribers
-
     app.config["BOOTSTRAP_BOOTSWATCH_THEME"] = "Litera"
 
     app.redis = Redis.from_url(app.config["REDIS_URL"])
@@ -59,6 +56,8 @@ def create_app(config):
     app.register_blueprint(mission_control.bp)
 
     from app.commands.seed import seed
+    from app.commands.scheduler import run_scheduler
     app.cli.add_command(seed)
+    app.cli.add_command(run_scheduler)
 
     return app
