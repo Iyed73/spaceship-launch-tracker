@@ -1,14 +1,9 @@
-from app import create_app, db
-from flask import render_template
+from app import db
+from flask import render_template, current_app
 from app.models import Subscriber, Launch, User, UserReminder
 from rq.job import Retry
-from config import DevelopmentConfig
 from app.tasks.send_email_notification import send_email_notification
 from config import Config
-
-
-app = create_app(DevelopmentConfig)
-app.app_context().push()
 
 
 def process_launch_reminder_notification(launch_id):
@@ -22,9 +17,9 @@ def process_launch_reminder_notification(launch_id):
     for email, name in recipients.items():
         html = render_template("subscription/reminder_email.html", receiver=name, launch=launch)
         subject = f"Launch reminder: {launch.mission} at {launch.launch_site.name}"
-        app.task_queue.enqueue(send_email_notification,
-                               recipient=email,
-                               content=html,
-                               subject=subject,
-                               retry=Retry(max=Config.TASK_QUEUE_MAX_RETRIES))
+        current_app.task_queue.enqueue(send_email_notification,
+                                       recipient=email,
+                                       content=html,
+                                       subject=subject,
+                                       retry=Retry(max=Config.TASK_QUEUE_MAX_RETRIES))
 

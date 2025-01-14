@@ -57,7 +57,9 @@ def create_app(config):
 
     from app.commands.seed import seed
     from app.commands.scheduler import run_scheduler
+    from app.commands.worker import run_worker
     app.cli.add_command(seed)
     app.cli.add_command(run_scheduler)
+    app.cli.add_command(run_worker)
 
     return app

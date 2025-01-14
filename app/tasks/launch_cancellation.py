@@ -1,14 +1,9 @@
-from app import create_app, db
-from flask import render_template
+from app import db
+from flask import render_template, current_app
 from app.models import Subscriber, Launch
 from rq.job import Retry
-from config import DevelopmentConfig
 from app.tasks.send_email_notification import send_email_notification
 from config import Config
-
-
-app = create_app(DevelopmentConfig)
-app.app_context().push()
 
 
 def process_launch_cancellation_notification(launch_id):
@@ -18,9 +13,9 @@ def process_launch_cancellation_notification(launch_id):
     for subscriber in subscribers:
         html = render_template("subscription/cancel_launch_email.html", receiver=subscriber.name, launch=launch)
         subject = f"Launch canceled: {launch.mission}"
-        app.task_queue.enqueue(send_email_notification,
-                               recipient=subscriber.email,
-                               content=html,
-                               subject=subject,
-                               retry=Retry(max=Config.TASK_QUEUE_MAX_RETRIES))
+        current_app.task_queue.enqueue(send_email_notification,
+                                       recipient=subscriber.email,
+                                       content=html,
+                                       subject=subject,
+                                       retry=Retry(max=Config.TASK_QUEUE_MAX_RETRIES))
 
