@@ -1,16 +1,17 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
-from flask_bootstrap import Bootstrap5
-from flask_mail import Mail
-from flask_moment import Moment
-from redis import Redis
 import rq
-from flask_apscheduler import APScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
-from app.rate_limiting.limiter import RateLimiter
+from flask import Flask
+from flask_apscheduler import APScheduler
+from flask_bootstrap import Bootstrap5
+from flask_login import LoginManager
+from flask_mail import Mail
+from flask_migrate import Migrate
+from flask_moment import Moment
+from flask_sqlalchemy import SQLAlchemy
+from redis import Redis
 
+from app.rate_limiting.limiter import RateLimiter
+from config import Config
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -20,10 +21,10 @@ limiter = RateLimiter()
 mail = Mail()
 moment = Moment()
 scheduler = APScheduler(BlockingScheduler())
-task_queue = None
+task_queue: rq.Queue | None = None
 
 
-def create_app(config):
+def create_app(config: type[Config]) -> Flask:
     app = Flask(__name__, instance_relative_config=True)
 
     app.config.from_object(config)
@@ -48,16 +49,18 @@ def create_app(config):
     app.task_queue = task_queue
     app.scheduler = scheduler
 
-    from app.routes import authentication, main, mission_control, launches, subscription
+    from app.routes import authentication, launches, main, mission_control, subscription
+
     app.register_blueprint(authentication.bp, url_prefix="/authentication")
     app.register_blueprint(main.bp)
     app.register_blueprint(launches.bp)
     app.register_blueprint(subscription.bp, url_prefix="/subscription")
     app.register_blueprint(mission_control.bp)
 
-    from app.commands.seed import seed
     from app.commands.scheduler import run_scheduler
+    from app.commands.seed import seed
     from app.commands.worker import run_worker
+
     app.cli.add_command(seed)
     app.cli.add_command(run_scheduler)
     app.cli.add_command(run_worker)

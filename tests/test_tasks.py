@@ -1,19 +1,25 @@
 import pytest
-from app.tasks.launch_creation import process_launch_creation_notification
-from app.tasks.launch_update import process_launch_update_notification
-from app.tasks.launch_cancellation import process_launch_cancellation_notification
-from app.tasks.launch_reminder import process_launch_reminder_notification
-from app.tasks.send_email_notification import send_email_notification
-from app.models import User, UserReminder
+
 from app import db
+from app.models import User, UserReminder
+from app.tasks.launch_cancellation import process_launch_cancellation_notification
+from app.tasks.launch_creation import process_launch_creation_notification
+from app.tasks.launch_reminder import process_launch_reminder_notification
+from app.tasks.launch_update import process_launch_update_notification
+from app.tasks.send_email_notification import send_email_notification
 
 
-@pytest.mark.parametrize(("task", "subject"),
-                         ((process_launch_creation_notification, "New Launch: mission at launch site"),
-                          (process_launch_update_notification, "Launch Update: mission"),
-                          (process_launch_cancellation_notification, "Launch canceled: mission")))
-def test_launch_notification_queues_email_for_confirmed_subscribers(app, launch, subscribers, mocked_queue, task,
-                                                                     subject):
+@pytest.mark.parametrize(
+    ("task", "subject"),
+    (
+        (process_launch_creation_notification, "New Launch: mission at launch site"),
+        (process_launch_update_notification, "Launch Update: mission"),
+        (process_launch_cancellation_notification, "Launch canceled: mission"),
+    ),
+)
+def test_launch_notification_queues_email_for_confirmed_subscribers(
+    app, launch, subscribers, mocked_queue, task, subject
+):
     with app.app_context():
         task(launch.id)
     assert mocked_queue.call_count == 1
@@ -23,8 +29,9 @@ def test_launch_notification_queues_email_for_confirmed_subscribers(app, launch,
     assert "Hello Test 1," in mocked_queue.call_args.kwargs["content"]
 
 
-def test_launch_reminder_notification_queues_email_for_users_with_reminder(app, launch, subscribers, user,
-                                                                            mocked_queue):
+def test_launch_reminder_notification_queues_email_for_users_with_reminder(
+    app, launch, subscribers, user, mocked_queue
+):
     with app.app_context():
         db.session.get(User, user.id).is_confirmed = True
         db.session.add(UserReminder(user_id=user.id, launch_id=launch.id))

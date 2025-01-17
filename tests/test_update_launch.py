@@ -1,6 +1,7 @@
 from redis.exceptions import ConnectionError
-from app.models import Spaceship, Launch, LaunchSite
+
 from app import db
+from app.models import Launch, LaunchSite, Spaceship
 
 
 def test_update_launch_success(mocker, app, login_admin):
@@ -11,7 +12,9 @@ def test_update_launch_success(mocker, app, login_admin):
         launch_site1 = LaunchSite(name="test launch site", location="somewhere")
         spaceship2 = Spaceship(name="test spaceship 2", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)
         launch_site2 = LaunchSite(name="test launch site 2", location="somewhere")
-        launch = Launch(mission="test mission", launch_timestamp="2024-06-27T11:57", spaceship=spaceship1, launch_site=launch_site1)
+        launch = Launch(
+            mission="test mission", launch_timestamp="2024-06-27T11:57", spaceship=spaceship1, launch_site=launch_site1
+        )
         db.session.add(spaceship1)
         db.session.add(spaceship2)
         db.session.add(launch_site1)
@@ -24,8 +27,14 @@ def test_update_launch_success(mocker, app, login_admin):
         db.session.refresh(launch_site1)
         db.session.refresh(launch_site2)
 
-    data = {"mission": "updated mission", "launch_timestamp": "2024-06-28T10:37", "spaceship_id": spaceship2.id,
-            "launch_site_id": launch_site2.id, "status": "scheduled", "version": launch.version}
+    data = {
+        "mission": "updated mission",
+        "launch_timestamp": "2024-06-28T10:37",
+        "spaceship_id": spaceship2.id,
+        "launch_site_id": launch_site2.id,
+        "status": "scheduled",
+        "version": launch.version,
+    }
     response = login_admin.post(f"/launch/{launch.id}", data=data, follow_redirects=True)
     assert response.status_code == 200
     with app.app_context():
@@ -41,8 +50,9 @@ def test_update_launch_fails_stale_version(mocker, app, login_admin, launch, lau
     mocker.patch("app.views.mission_control.update_launch.UpdateLaunchView.notify")
 
     login_admin.post(f"/launch/{launch.id}", data={**launch_data, "mission": "first update"})
-    response = login_admin.post(f"/launch/{launch.id}", data={**launch_data, "mission": "second update"},
-                                follow_redirects=True)
+    response = login_admin.post(
+        f"/launch/{launch.id}", data={**launch_data, "mission": "second update"}, follow_redirects=True
+    )
     assert b"Launch was modified by someone else" in response.data
     with app.app_context():
         assert Launch.query.get(launch.id).mission == "first update"
@@ -50,8 +60,9 @@ def test_update_launch_fails_stale_version(mocker, app, login_admin, launch, lau
 
 def test_update_launch_success_queue_unavailable(app, login_admin, launch, launch_data, mocked_queue):
     mocked_queue.side_effect = ConnectionError
-    response = login_admin.post(f"/launch/{launch.id}", data={**launch_data, "mission": "updated mission"},
-                                follow_redirects=True)
+    response = login_admin.post(
+        f"/launch/{launch.id}", data={**launch_data, "mission": "updated mission"}, follow_redirects=True
+    )
     assert response.status_code == 200
     assert b"Subscribers could not be notified about this launch." in response.data
     with app.app_context():
@@ -59,6 +70,11 @@ def test_update_launch_success_queue_unavailable(app, login_admin, launch, launc
 
 
 def test_update_launch_not_found(app, login_admin):
-    data = {"mission": "updated mission", "launch_timestamp": "2024-06-28T10:37", "spaceship_id": 1, "launch_site_id": 1}
+    data = {
+        "mission": "updated mission",
+        "launch_timestamp": "2024-06-28T10:37",
+        "spaceship_id": 1,
+        "launch_site_id": 1,
+    }
     response = login_admin.post("/launch/9", data=data, follow_redirects=True)
     assert response.status_code == 404

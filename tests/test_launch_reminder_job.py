@@ -1,8 +1,9 @@
 import pytest
 from redis.exceptions import ConnectionError
-from app.scheduled_jobs.launch_reminder_job import remind_subscribers, LOCK_NAME
-from app.models import LaunchReminder
+
 from app import db
+from app.models import LaunchReminder
+from app.scheduled_jobs.launch_reminder_job import LOCK_NAME, remind_subscribers
 
 
 def test_remind_subscribers_no_upcoming_launches(app, upcoming_launch, mocked_queue):

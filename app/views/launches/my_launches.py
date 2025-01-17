@@ -1,18 +1,21 @@
+from datetime import datetime
+
 from flask import render_template, request
+from flask.typing import ResponseReturnValue
 from flask.views import MethodView
 from flask_login import current_user
-from datetime import datetime
-from app.models import Launch, Spaceship, LaunchSite, UserReminder
-from app.forms import LaunchFilterForm, ReminderForm
+
 from app import limiter
 from app.decorators import spectator_required
+from app.forms import LaunchFilterForm, ReminderForm
+from app.models import Launch, LaunchSite, Spaceship, UserReminder
 
 
 class MyLaunchesView(MethodView):
     decorators = [spectator_required]
 
     @limiter.limit("30 per minute")
-    def get(self):
+    def get(self) -> ResponseReturnValue:
         now = datetime.now()
         page = request.args.get("page", 1, type=int)
 
@@ -20,13 +23,14 @@ class MyLaunchesView(MethodView):
 
         per_page = form.per_page.data or 10
 
-        form.spaceship.choices = ([(0, "All Spaceships")] +
-                                  [(spaceship.id, spaceship.name) for spaceship in Spaceship.query.all()])
-        form.launch_site.choices = ([(0, "All Launch Sites")] +
-                                    [(site.id, site.name) for site in LaunchSite.query.all()])
+        form.spaceship.choices = [(0, "All Spaceships")] + [
+            (spaceship.id, spaceship.name) for spaceship in Spaceship.query.all()
+        ]
+        form.launch_site.choices = [(0, "All Launch Sites")] + [(site.id, site.name) for site in LaunchSite.query.all()]
 
-        query = Launch.query.join(UserReminder).filter(UserReminder.user_id == current_user.id,
-                                                       Launch.launch_timestamp > now)
+        query = Launch.query.join(UserReminder).filter(
+            UserReminder.user_id == current_user.id, Launch.launch_timestamp > now
+        )
 
         if form.spaceship.data:
             query = query.filter(Launch.spaceship_id == form.spaceship.data)
@@ -49,5 +53,5 @@ class MyLaunchesView(MethodView):
             form=form,
             reminder_form=ReminderForm(),
             reminded_launch_ids={launch.id for launch in launches},
-            status="My"
+            status="My",
         )

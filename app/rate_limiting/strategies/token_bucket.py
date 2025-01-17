@@ -1,5 +1,10 @@
-from app.rate_limiting.strategies.base import RateLimitStrategy
+import time
+from collections.abc import Callable
 
+from redis import Redis
+
+from app.rate_limiting.rate_limit import RateLimit
+from app.rate_limiting.strategies.base import RateLimitStrategy
 
 SCRIPT = """
 local key, now, period, amount = KEYS[1], tonumber(ARGV[1]), tonumber(ARGV[2]), tonumber(ARGV[3])
@@ -18,9 +23,9 @@ return allowed and 1 or 0
 
 
 class TokenBucketStrategy(RateLimitStrategy):
-    def __init__(self, redis, **kwargs):
-        super().__init__(redis, **kwargs)
+    def __init__(self, redis: Redis, clock: Callable[[], float] = time.time) -> None:
+        super().__init__(redis, clock)
         self.script = redis.register_script(SCRIPT)
 
-    def allow(self, key, limit):
+    def allow(self, key: str, limit: RateLimit) -> bool:
         return bool(self.script(keys=[key], args=[self.clock(), limit.period, limit.amount]))

@@ -1,24 +1,28 @@
-from flask import flash, url_for, redirect, request
+from datetime import datetime
+from urllib.parse import urlsplit
+from uuid import UUID
+
+from flask import flash, redirect, request, url_for
+from flask.typing import ResponseReturnValue
 from flask.views import MethodView
 from flask_login import current_user
-from datetime import datetime
-from app.models import Launch, UserReminder
-from app.forms import ReminderForm
-from app import db, limiter
-from app.decorators import spectator_required
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from urllib.parse import urlsplit
+
+from app import db, limiter
+from app.decorators import spectator_required
+from app.forms import ReminderForm
+from app.models import Launch, UserReminder
 
 
 class ToggleReminderView(MethodView):
     decorators = [spectator_required]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.form = ReminderForm()
 
     @limiter.limit("30 per minute")
-    def post(self, id):
+    def post(self, id: UUID) -> ResponseReturnValue:
         launch = Launch.query.get_or_404(id)
         next_page = request.args.get("next")
         if not next_page or urlsplit(next_page).netloc != "":

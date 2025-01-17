@@ -4,18 +4,24 @@ from app.models import Launch, LaunchEvent
 def test_create_launch_records_event(mocker, app, login_admin, admin, launch):
     mocker.patch("app.views.mission_control.create_launch.CreateLaunchView.notify")
 
-    data = {"mission": "test mission", "launch_timestamp": "2024-06-27T11:57", "spaceship_id": launch.spaceship_id,
-            "launch_site_id": launch.launch_site_id}
+    data = {
+        "mission": "test mission",
+        "launch_timestamp": "2024-06-27T11:57",
+        "spaceship_id": launch.spaceship_id,
+        "launch_site_id": launch.launch_site_id,
+    }
     login_admin.post("/launch/create", data=data)
     with app.app_context():
         assert LaunchEvent.query.count() == 1
         event = LaunchEvent.query.first()
         assert event.creator_id == admin.id
-        assert event.changes == {"mission": [None, "test mission"],
-                                 "launch_timestamp": [None, "2024-06-27T11:57:00"],
-                                 "spaceship_id": [None, launch.spaceship_id],
-                                 "launch_site_id": [None, launch.launch_site_id],
-                                 "status": [None, "scheduled"]}
+        assert event.changes == {
+            "mission": [None, "test mission"],
+            "launch_timestamp": [None, "2024-06-27T11:57:00"],
+            "spaceship_id": [None, launch.spaceship_id],
+            "launch_site_id": [None, launch.launch_site_id],
+            "status": [None, "scheduled"],
+        }
 
 
 def test_update_launch_records_event(mocker, app, login_admin, launch, launch_data):
@@ -26,8 +32,10 @@ def test_update_launch_records_event(mocker, app, login_admin, launch, launch_da
     with app.app_context():
         events = Launch.query.get(launch.id).events
         assert len(events) == 1
-        assert events[0].changes == {"launch_timestamp": ["2024-06-27T11:57:00", "2024-06-28T10:37:00"],
-                                     "status": ["scheduled", "delayed"]}
+        assert events[0].changes == {
+            "launch_timestamp": ["2024-06-27T11:57:00", "2024-06-28T10:37:00"],
+            "status": ["scheduled", "delayed"],
+        }
 
 
 def test_update_launch_without_changes_records_no_event(mocker, app, login_admin, launch, launch_data):

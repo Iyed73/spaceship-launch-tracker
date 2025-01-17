@@ -1,0 +1,25 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["migrations"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "UP",   # pyupgrade
+    "SIM",  # flake8-simplify
+    "ANN",  # flake8-annotations: every function must have type hints
+]
+ignore = [
+    "ANN401",  # allow typing.Any where a value really can be anything
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "config", "tests"]

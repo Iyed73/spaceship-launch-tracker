@@ -1,10 +1,20 @@
 from flask_wtf import FlaskForm
-from wtforms import (StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField, FloatField,
-                     DateTimeField, HiddenField)
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, Length, Regexp, Optional
 from sqlalchemy import select
+from wtforms import (
+    BooleanField,
+    DateTimeField,
+    FloatField,
+    HiddenField,
+    PasswordField,
+    SelectField,
+    StringField,
+    SubmitField,
+    TextAreaField,
+)
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, Regexp, ValidationError
+
 from app import db
-from app.models import User, Subscriber, LaunchStatus
+from app.models import LaunchStatus, Subscriber, User
 
 
 class LoginForm(FlaskForm):
@@ -15,22 +25,29 @@ class LoginForm(FlaskForm):
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired(), Length(min=4, max=64),
-                                                   Regexp(r'^[\w.@+-_]+$', message="Only alphanumeric characters, "
-                                                                                   "dots, '@', '+', '-' and '_' are "
-                                                                                   "allowed for username.")])
+    username = StringField(
+        "Username",
+        validators=[
+            DataRequired(),
+            Length(min=4, max=64),
+            Regexp(
+                r"^[\w.@+-_]+$",
+                message="Only alphanumeric characters, dots, '@', '+', '-' and '_' are allowed for username.",
+            ),
+        ],
+    )
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired(), Length(min=8, max=64)])
     password_confirmation = PasswordField("Repeat Password", validators=[DataRequired(), EqualTo("password")])
     submit = SubmitField("Register")
 
-    def validate_username(self, username):
+    def validate_username(self, username: StringField) -> None:
         if self.username.data and self.username.validate(self):
             user = db.session.scalar(select(User).where(User.username == username.data))
             if user is not None:
                 raise ValidationError("Choose a different username.")
 
-    def validate_email(self, email):
+    def validate_email(self, email: StringField) -> None:
         if self.email.data and self.email.validate(self):
             user = db.session.scalar(select(User).where(User.email == email.data))
             if user is not None:
@@ -55,13 +72,11 @@ class LaunchSiteForm(FlaskForm):
 
 class LaunchForm(FlaskForm):
     mission = StringField("Mission", validators=[DataRequired(), Length(max=128)])
-    description = TextAreaField("Description", validators=[Optional(), Length(max=1024)],
-                                filters=[lambda value: value or None])
+    description = TextAreaField(
+        "Description", validators=[Optional(), Length(max=1024)], filters=[lambda value: value or None]
+    )
     launch_timestamp = DateTimeField(
-        "Launch Timestamp",
-        format="%Y-%m-%dT%H:%M",
-        validators=[DataRequired()],
-        render_kw={"type": "datetime-local"}
+        "Launch Timestamp", format="%Y-%m-%dT%H:%M", validators=[DataRequired()], render_kw={"type": "datetime-local"}
     )
     spaceship_id = SelectField("Spaceship", coerce=int, choices=[])
     launch_site_id = SelectField("Launch Site", coerce=int, choices=[])
@@ -77,21 +92,26 @@ class LaunchUpdateForm(LaunchForm):
 class LaunchFilterForm(FlaskForm):
     class Meta:
         csrf = False
+
     spaceship = SelectField("Spaceship", coerce=int, choices=[])
     launch_site = SelectField("Launch Site", coerce=int, choices=[])
-    per_page = SelectField("Launches per Page", coerce=int, choices=[(10, '10'), (20, '20'), (30, '30')], default=10)
+    per_page = SelectField("Launches per Page", coerce=int, choices=[(10, "10"), (20, "20"), (30, "30")], default=10)
     submit = SubmitField("Filter")
 
 
 class SubscriptionForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
-    name = StringField("Full name", validators=[Length(min=4, max=64), DataRequired(),
-                                                Regexp(r'^[a-zA-Z\s]+$',
-                                                       message="Full name must contain only letters and spaces.")
-                                                ])
+    name = StringField(
+        "Full name",
+        validators=[
+            Length(min=4, max=64),
+            DataRequired(),
+            Regexp(r"^[a-zA-Z\s]+$", message="Full name must contain only letters and spaces."),
+        ],
+    )
     submit = SubmitField("Subscribe")
 
-    def validate_email(self, email):
+    def validate_email(self, email: StringField) -> None:
         if self.email.data and self.email.validate(self):
             subscriber = db.session.scalar(select(Subscriber).where(Subscriber.email == email.data))
             if subscriber is not None and subscriber.is_confirmed:

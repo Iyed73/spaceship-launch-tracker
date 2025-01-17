@@ -1,12 +1,15 @@
-from app import db
-from flask import render_template, current_app
-from app.models import Subscriber, Launch, User, UserReminder
+from uuid import UUID
+
+from flask import current_app, render_template
 from rq.job import Retry
+
+from app import db
+from app.models import Launch, Subscriber, User, UserReminder
 from app.tasks.send_email_notification import send_email_notification
 from config import Config
 
 
-def process_launch_reminder_notification(launch_id):
+def process_launch_reminder_notification(launch_id: UUID) -> None:
     launch = db.session.get(Launch, launch_id)
     subscribers = Subscriber.query.filter_by(is_confirmed=True).all()
     users = User.query.join(UserReminder).filter(UserReminder.launch_id == launch_id, User.is_confirmed).all()
@@ -17,9 +20,10 @@ def process_launch_reminder_notification(launch_id):
     for email, name in recipients.items():
         html = render_template("subscription/reminder_email.html", receiver=name, launch=launch)
         subject = f"Launch reminder: {launch.mission} at {launch.launch_site.name}"
-        current_app.task_queue.enqueue(send_email_notification,
-                                       recipient=email,
-                                       content=html,
-                                       subject=subject,
-                                       retry=Retry(max=Config.TASK_QUEUE_MAX_RETRIES))
-
+        current_app.task_queue.enqueue(
+            send_email_notification,
+            recipient=email,
+            content=html,
+            subject=subject,
+            retry=Retry(max=Config.TASK_QUEUE_MAX_RETRIES),
+        )

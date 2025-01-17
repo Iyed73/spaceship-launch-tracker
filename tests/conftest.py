@@ -1,9 +1,11 @@
-import pytest
-from uuid import uuid4
-from app import create_app, db, limiter
-from config import TestingConfig
-from app.models import User, Subscriber, Launch, LaunchSite, Spaceship
 from datetime import datetime, timedelta
+from uuid import uuid4
+
+import pytest
+
+from app import create_app, db, limiter
+from app.models import Launch, LaunchSite, Spaceship, Subscriber, User
+from config import TestingConfig
 
 
 @pytest.fixture()
@@ -46,13 +48,16 @@ def admin(app):
 @pytest.fixture()
 def login_admin(client, admin):
     with client:
-        client.post("/authentication/login", data={
-            "username": "admin",
-            "password": "password",
-        })
+        client.post(
+            "/authentication/login",
+            data={
+                "username": "admin",
+                "password": "password",
+            },
+        )
         return client
-    
-    
+
+
 @pytest.fixture()
 def user(app):
     user = User(username="user", email="user@user.com")
@@ -67,10 +72,13 @@ def user(app):
 @pytest.fixture()
 def login_user(client, user):
     with client:
-        client.post("/authentication/login", data={
-            "username": "user",
-            "password": "password",
-        })
+        client.post(
+            "/authentication/login",
+            data={
+                "username": "user",
+                "password": "password",
+            },
+        )
         return client
 
 
@@ -93,13 +101,15 @@ def mocked_queue(mocker, app):
         mocked_queue = mocker.patch("app.task_queue.enqueue")
     return mocked_queue
 
+
 @pytest.fixture()
 def launch(app):
     with app.app_context():
         spaceship = Spaceship(name="spaceship", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)
         launch_site = LaunchSite(name="launch site", location="somewhere")
-        launch = Launch(mission="mission", launch_timestamp="2024-06-27T11:57", spaceship=spaceship,
-                        launch_site=launch_site)
+        launch = Launch(
+            mission="mission", launch_timestamp="2024-06-27T11:57", spaceship=spaceship, launch_site=launch_site
+        )
         db.session.add(spaceship)
         db.session.add(launch_site)
         db.session.add(launch)
@@ -112,8 +122,14 @@ def launch(app):
 
 @pytest.fixture()
 def launch_data(launch):
-    return {"mission": "mission", "launch_timestamp": "2024-06-27T11:57", "spaceship_id": launch.spaceship_id,
-            "launch_site_id": launch.launch_site_id, "status": "scheduled", "version": launch.version}
+    return {
+        "mission": "mission",
+        "launch_timestamp": "2024-06-27T11:57",
+        "spaceship_id": launch.spaceship_id,
+        "launch_site_id": launch.launch_site_id,
+        "status": "scheduled",
+        "version": launch.version,
+    }
 
 
 @pytest.fixture()
@@ -123,8 +139,9 @@ def launch_after_1_hour(app):
         launch_timestamp = launch_timestamp.strftime("%Y-%m-%dT%H:%M")
         spaceship = Spaceship(name="spaceship", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)
         launch_site = LaunchSite(name="launch site", location="somewhere")
-        launch = Launch(mission="mission", launch_timestamp=launch_timestamp, spaceship=spaceship,
-                        launch_site=launch_site)
+        launch = Launch(
+            mission="mission", launch_timestamp=launch_timestamp, spaceship=spaceship, launch_site=launch_site
+        )
         db.session.add(spaceship)
         db.session.add(launch_site)
         db.session.add(launch)
@@ -140,8 +157,12 @@ def upcoming_launch(app):
     with app.app_context():
         spaceship = Spaceship(name="spaceship", height=1, mass=1, payload_capacity=1, thrust_at_liftoff=1)
         launch_site = LaunchSite(name="launch site", location="somewhere")
-        launch = Launch(mission="mission", launch_timestamp=datetime.now() + timedelta(days=1), spaceship=spaceship,
-                        launch_site=launch_site)
+        launch = Launch(
+            mission="mission",
+            launch_timestamp=datetime.now() + timedelta(days=1),
+            spaceship=spaceship,
+            launch_site=launch_site,
+        )
         db.session.add(spaceship)
         db.session.add(launch_site)
         db.session.add(launch)
@@ -156,4 +177,3 @@ def upcoming_launch(app):
 def mock_send_email_notification(mocker):
     mock_send_email_notification = mocker.patch("app.tasks.launch_update.send_email_notification")
     return mock_send_email_notification
-

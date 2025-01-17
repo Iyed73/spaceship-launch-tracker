@@ -1,5 +1,6 @@
-from app.models import Spaceship
 from urllib.parse import urlparse
+
+from app.models import Spaceship
 
 
 def test_create_spaceship_success(app, login_admin):

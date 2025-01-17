@@ -1,5 +1,5 @@
-from app.models import Spaceship
 from app import db
+from app.models import Spaceship
 
 
 def test_update_spaceship_success(app, login_admin):

@@ -1,7 +1,8 @@
 from itsdangerous import URLSafeTimedSerializer
-from app.models import Subscriber
-from app import db
 from sqlalchemy import select
+
+from app import db
+from app.models import Subscriber
 
 
 def test_confirm_email(client, app):

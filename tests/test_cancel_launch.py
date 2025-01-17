@@ -1,7 +1,9 @@
-from redis.exceptions import ConnectionError
-from app.models import Launch, LaunchStatus
-from app import db
 from urllib.parse import urlparse
+
+from redis.exceptions import ConnectionError
+
+from app import db
+from app.models import Launch, LaunchStatus
 
 
 def test_cancel_launch_success(app, login_admin, launch, mocked_queue):

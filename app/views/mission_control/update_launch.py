@@ -1,48 +1,51 @@
+from uuid import UUID
+
+from flask import current_app, flash, redirect, render_template, url_for
+from flask.typing import ResponseReturnValue
 from flask.views import MethodView
-from flask import render_template, flash, url_for, redirect
 from flask_login import current_user
-from app.models import Launch, Spaceship, LaunchSite
-from app.forms import LaunchUpdateForm
-from app import db
-from app.decorators import admin_required
-from flask import current_app
 from redis.exceptions import RedisError
 from sqlalchemy.orm.exc import StaleDataError
+
+from app import db
+from app.decorators import admin_required
+from app.forms import LaunchUpdateForm
+from app.models import Launch, LaunchSite, Spaceship
 
 
 class UpdateLaunchView(MethodView):
     decorators = [admin_required]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.form = LaunchUpdateForm()
         self.form.spaceship_id.choices = [(spaceship.id, spaceship.name) for spaceship in Spaceship.query.all()]
         self.form.launch_site_id.choices = [(site.id, site.name) for site in LaunchSite.query.all()]
 
     @staticmethod
-    def notify(launch):
+    def notify(launch: Launch) -> None:
         try:
-            current_app.task_queue.enqueue(f"app.tasks.launch_update.process_launch_update_notification",
-                                           launch_id=launch.id)
+            current_app.task_queue.enqueue(
+                "app.tasks.launch_update.process_launch_update_notification", launch_id=launch.id
+            )
         except RedisError:
             current_app.logger.exception("Failed to queue launch update notification")
             flash("Subscribers could not be notified about this launch.", "warning")
 
-    def get_launch(self, id):
+    def get_launch(self, id: UUID) -> Launch:
         launch = Launch.query.get_or_404(id)
-        self.form.status.choices = [(status.value, status.value.capitalize())
-                                    for status in (launch.status, *launch.status.transitions)]
+        self.form.status.choices = [
+            (status.value, status.value.capitalize()) for status in (launch.status, *launch.status.transitions)
+        ]
         return launch
 
-    def get(self, id):
+    def get(self, id: UUID) -> ResponseReturnValue:
         launch = self.get_launch(id)
         self.form.process(obj=launch)
         return render_template(
-            "mission_control/update_object.html",
-            title="Update Launch",
-            form=self.form,
-            model_name="Launch")
+            "mission_control/update_object.html", title="Update Launch", form=self.form, model_name="Launch"
+        )
 
-    def post(self, id):
+    def post(self, id: UUID) -> ResponseReturnValue:
         launch = self.get_launch(id)
         if self.form.validate_on_submit():
             try:
@@ -60,7 +63,5 @@ class UpdateLaunchView(MethodView):
             flash("Launch updated successfully!", "success")
             return redirect(url_for("mission_control.list_launches"))
         return render_template(
-            "mission_control/update_object.html",
-            title="Update Launch",
-            form=self.form,
-            model_name="Launch")
+            "mission_control/update_object.html", title="Update Launch", form=self.form, model_name="Launch"
+        )

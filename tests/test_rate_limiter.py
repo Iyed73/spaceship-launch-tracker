@@ -1,11 +1,11 @@
 import pytest
 from redis.exceptions import RedisError
+
 from app import limiter
 from app.rate_limiting.limiter import RateLimiter
 from app.rate_limiting.strategies.fixed_window import FixedWindowStrategy
 from app.rate_limiting.strategies.sliding_window import SlidingWindowStrategy
 from app.rate_limiting.strategies.token_bucket import TokenBucketStrategy
-
 
 LOGIN_DATA = {"username": "someone", "password": "12345678"}
 
@@ -43,10 +43,14 @@ def test_login_allowed_when_storage_unavailable(rate_limited_client, mocker):
     assert response.status_code == 302
 
 
-@pytest.mark.parametrize(("strategy", "strategy_class"),
-                         (("fixed_window", FixedWindowStrategy),
-                          ("sliding_window", SlidingWindowStrategy),
-                          ("token_bucket", TokenBucketStrategy),))
+@pytest.mark.parametrize(
+    ("strategy", "strategy_class"),
+    (
+        ("fixed_window", FixedWindowStrategy),
+        ("sliding_window", SlidingWindowStrategy),
+        ("token_bucket", TokenBucketStrategy),
+    ),
+)
 def test_strategy_selected_from_config(app, strategy, strategy_class):
     app.config["RATE_LIMIT_STRATEGY"] = strategy
     rate_limiter = RateLimiter()

@@ -1,6 +1,6 @@
 A Flask web app for tracking spaceship launches. Admins manage spaceships, launch sites and launches from a mission control panel. Visitors browse upcoming and past launches, subscribe to email updates and set reminders for the launches they care about.
 
-Stack: Flask, SQLAlchemy, PostgreSQL, Redis, RQ, APScheduler, pytest.
+Stack: Flask, SQLAlchemy, PostgreSQL, Redis, RQ, APScheduler, pytest, Ruff.
 
 ## Features
 
@@ -40,3 +40,13 @@ flask run                            # web app
 flask worker                         # email worker
 flask scheduler                      # reminder job
 ```
+
+## Tests and code quality
+
+```bash
+pytest                               # needs PostgreSQL and Redis running
+ruff check .                         # lint, including required type hints
+ruff format .                        # format
+```
+
+The application code is fully type-hinted. GitHub Actions runs the lint, the format check and the tests on every push and pull request.

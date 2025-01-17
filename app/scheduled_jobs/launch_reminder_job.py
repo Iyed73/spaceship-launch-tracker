@@ -1,14 +1,14 @@
 from datetime import datetime, timedelta
-from app.models import Launch, LaunchReminder
-from app import db, scheduler
-from config import Config
 
+from app import db, scheduler
+from app.models import Launch, LaunchReminder
+from config import Config
 
 LOCK_NAME = "lock:remind_subscribers"
 
 
-@scheduler.task('interval', id='remind_subscribers', seconds=Config.SUBSCRIBERS_REMINDER_JOB_INTERVAL)
-def remind_subscribers():
+@scheduler.task("interval", id="remind_subscribers", seconds=Config.SUBSCRIBERS_REMINDER_JOB_INTERVAL)
+def remind_subscribers() -> None:
     app = scheduler.app
 
     with app.app_context():
@@ -22,7 +22,9 @@ def remind_subscribers():
 
             for launch in launches:
                 if LaunchReminder.claim(launch.id):
-                    app.task_queue.enqueue(f"app.tasks.launch_reminder.process_launch_reminder_notification", launch_id=launch.id)
+                    app.task_queue.enqueue(
+                        "app.tasks.launch_reminder.process_launch_reminder_notification", launch_id=launch.id
+                    )
                 db.session.commit()
         finally:
             lock.release()

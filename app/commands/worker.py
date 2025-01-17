@@ -6,6 +6,6 @@ from rq import Worker
 
 @click.command("worker")
 @with_appcontext
-def run_worker():
+def run_worker() -> None:
     worker = Worker([current_app.task_queue], connection=current_app.redis)
     worker.work()

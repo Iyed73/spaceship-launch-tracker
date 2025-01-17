@@ -1,10 +1,11 @@
-import pytest
 from uuid import uuid4
+
+import pytest
+
 from app.rate_limiting.rate_limit import RateLimit
 from app.rate_limiting.strategies.fixed_window import FixedWindowStrategy
 from app.rate_limiting.strategies.sliding_window import SlidingWindowStrategy
 from app.rate_limiting.strategies.token_bucket import TokenBucketStrategy
-
 
 STRATEGIES = (FixedWindowStrategy, SlidingWindowStrategy, TokenBucketStrategy)
 LIMIT = RateLimit(amount=10, period=60)
@@ -28,10 +29,14 @@ def key():
     return f"test_rate_limit:{uuid4().hex}"
 
 
-@pytest.mark.parametrize(("value", "limit"),
-                         (("10 per minute", RateLimit(10, 60)),
-                          ("100 per hour", RateLimit(100, 3600)),
-                          ("500 per day", RateLimit(500, 86400)),))
+@pytest.mark.parametrize(
+    ("value", "limit"),
+    (
+        ("10 per minute", RateLimit(10, 60)),
+        ("100 per hour", RateLimit(100, 3600)),
+        ("500 per day", RateLimit(500, 86400)),
+    ),
+)
 def test_rate_limit_parse(value, limit):
     assert RateLimit.parse(value) == limit
 

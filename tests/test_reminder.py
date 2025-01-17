@@ -1,6 +1,7 @@
-from app.models import UserReminder, LaunchReminder
-from app import db
 from urllib.parse import urlparse
+
+from app import db
+from app.models import LaunchReminder, UserReminder
 
 
 def test_set_reminder_success(app, login_user, user, upcoming_launch):

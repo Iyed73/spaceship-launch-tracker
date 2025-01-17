@@ -1,9 +1,12 @@
 from smtplib import SMTPException
+
 from flask import current_app
+from flask_mail import Message
+
 from app import mail
 
 
-def send_email(message):
+def send_email(message: Message) -> bool:
     try:
         mail.send(message)
     except (SMTPException, OSError):

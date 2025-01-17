@@ -1,12 +1,13 @@
+from flask import flash, redirect, url_for
+from flask.typing import ResponseReturnValue
 from flask.views import View
-from flask import  flash, url_for, redirect
-from flask_login import login_required, current_user
+from flask_login import current_user, login_required
 
 
 class ConfirmView(View):
     decorators = [login_required]
 
-    def dispatch_request(self, token):
+    def dispatch_request(self, token: str) -> ResponseReturnValue:
         if current_user.is_confirmed:
             return redirect(url_for("main.index"))
         if current_user.confirm_token(token):

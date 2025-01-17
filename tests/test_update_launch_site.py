@@ -1,5 +1,5 @@
-from app.models import LaunchSite
 from app import db
+from app.models import LaunchSite
 
 
 def test_update_launch_site_success(app, login_admin):
